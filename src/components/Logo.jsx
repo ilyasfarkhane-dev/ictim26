@@ -1,3 +1,4 @@
+import { baseUrl } from "../config/paths";
 import { useConference } from "../hooks/useConference";
 import CloudinaryImage from "./CloudinaryImage";
 
@@ -9,10 +10,10 @@ export default function Logo({ className = "", size = "md" }) {
     lg: "h-12 sm:h-14",
   };
 
-  const src = conference.logoUrl || "/assets/logo_tim.png";
+  const src = conference.logoUrl || `${baseUrl}assets/logo_tim.png`;
 
   return (
-    <a href="#home" className={`inline-flex items-center group cursor-pointer ${className}`}>
+    <a href={`${baseUrl}#home`} className={`inline-flex items-center group cursor-pointer ${className}`}>
       <CloudinaryImage
         src={src}
         alt="ICTIM'26 — The 8th International Conference on Information Technology and Modeling"

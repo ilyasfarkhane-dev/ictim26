@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import DashButton from "../../components/dashboard/DashButton";
 import { DashInput } from "../../components/dashboard/DashInput";
@@ -79,9 +79,9 @@ export default function Login() {
         </div>
 
         <p className="mt-6 text-center text-sm text-dash-muted">
-          <a href="/" className="text-dash-primary font-medium hover:underline cursor-pointer">
+          <Link to="/" className="text-dash-primary font-medium hover:underline cursor-pointer">
             ← Back to website
-          </a>
+          </Link>
         </p>
       </div>
     </div>

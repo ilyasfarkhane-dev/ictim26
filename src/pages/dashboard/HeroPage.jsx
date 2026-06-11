@@ -5,7 +5,7 @@ import ImageUpload from "../../components/dashboard/ImageUpload";
 import CloudinaryImage from "../../components/CloudinaryImage";
 import { useConference } from "../../hooks/useConference";
 import { upsertSetting } from "../../lib/contentApi";
-import { CLOUDINARY_FOLDERS } from "../../lib/cloudinary";
+import { withBase } from "../../config/paths";
 
 export default function HeroPage() {
   const { heroImages, heroHighlights, refresh } = useConference();
@@ -211,7 +211,7 @@ export default function HeroPage() {
             </div>
           </div>
           <a
-            href="/#home"
+            href={`${withBase("/")}#home`}
             target="_blank"
             rel="noopener noreferrer"
             className="block text-center text-sm font-medium text-dash-primary hover:underline cursor-pointer"

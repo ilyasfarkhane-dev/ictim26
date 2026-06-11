@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { routerBasename } from "./config/paths";
 import MainLayout from "./layouts/MainLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ProtectedRoute from "./components/dashboard/ProtectedRoute";
@@ -17,7 +18,7 @@ import HeroPage from "./pages/dashboard/HeroPage";
 
 export default function App() {
   return (
-    <BrowserRouter basename="/ictim26">
+    <BrowserRouter basename={routerBasename}>
       <Routes>
         <Route
           path="/"

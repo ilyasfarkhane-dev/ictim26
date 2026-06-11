@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, Link } from "react-router-dom";
 import {
   HiOutlineHome,
   HiOutlineUserGroup,
@@ -114,15 +114,15 @@ export default function DashboardLayout() {
             <p className="relative mt-1 text-xs text-white/70">
               {isLive ? "Live from Supabase" : "Using local defaults"}
             </p>
-            <a
-              href="/"
+            <Link
+              to="/"
               target="_blank"
               rel="noopener noreferrer"
               className="relative mt-4 inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/20 transition-colors cursor-pointer"
             >
               View website
               <HiOutlineArrowTopRightOnSquare className="w-3.5 h-3.5" />
-            </a>
+            </Link>
           </div>
         </div>
       </aside>
