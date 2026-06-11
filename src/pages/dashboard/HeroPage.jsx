@@ -5,6 +5,7 @@ import ImageUpload from "../../components/dashboard/ImageUpload";
 import CloudinaryImage from "../../components/CloudinaryImage";
 import { useConference } from "../../hooks/useConference";
 import { upsertSetting } from "../../lib/contentApi";
+import { CLOUDINARY_FOLDERS } from "../../lib/cloudinary";
 import { withBase } from "../../config/paths";
 
 export default function HeroPage() {
