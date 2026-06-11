@@ -17,7 +17,7 @@ import HeroPage from "./pages/dashboard/HeroPage";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/ictim26">
       <Routes>
         <Route
           path="/"
