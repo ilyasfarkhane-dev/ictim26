@@ -116,7 +116,7 @@ export default function EntityManager({
                 items.map((item) => (
                   <tr
                     key={item.id}
-                    className="border-b border-dash-border last:border-0 hover:bg-dash-bg/40 transition-colors"
+                    className="border-b border-dash-border last:border-0 hover:bg-blue-50/40 transition-colors duration-200"
                   >
                     {columns.map((col) => (
                       <td key={col.key} className="px-5 py-4 text-dash-text">
@@ -128,7 +128,7 @@ export default function EntityManager({
                         <button
                           type="button"
                           onClick={() => openEdit(item)}
-                          className="p-2 rounded-lg text-dash-muted hover:bg-dash-bg hover:text-dash-primary transition-colors cursor-pointer"
+                          className="p-2 rounded-lg text-dash-muted hover:bg-blue-50 hover:text-dash-primary transition-colors duration-200 cursor-pointer dash-focus-ring"
                           aria-label="Edit"
                         >
                           <HiOutlinePencilSquare className="w-4 h-4" />
@@ -136,7 +136,7 @@ export default function EntityManager({
                         <button
                           type="button"
                           onClick={() => handleDelete(item.id)}
-                          className="p-2 rounded-lg text-dash-muted hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
+                          className="p-2 rounded-lg text-dash-muted hover:bg-red-50 hover:text-red-600 transition-colors duration-200 cursor-pointer dash-focus-ring"
                           aria-label="Delete"
                         >
                           <HiOutlineTrash className="w-4 h-4" />

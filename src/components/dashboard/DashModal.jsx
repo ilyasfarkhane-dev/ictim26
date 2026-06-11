@@ -21,7 +21,7 @@ export default function DashModal({ title, open, onClose, children, wide }) {
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-lg text-dash-muted hover:bg-dash-bg hover:text-dash-text transition-colors cursor-pointer"
+            className="p-2 rounded-lg text-dash-muted hover:bg-blue-50 hover:text-dash-text transition-colors duration-200 cursor-pointer dash-focus-ring"
           >
             <HiOutlineXMark className="w-5 h-5" />
           </button>

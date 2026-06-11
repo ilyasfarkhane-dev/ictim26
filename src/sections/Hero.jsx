@@ -160,32 +160,7 @@ export default function Hero() {
               </div>
             </div>
 
-            {/* Floating glass stats */}
-            {!reducedMotion && (
-              <>
-                <motion.div
-                  {...floatAnimation}
-                  className="absolute -left-2 sm:-left-6 top-1/4 glass rounded-2xl px-5 py-4 shadow-glow hidden sm:block"
-                >
-                  <p className="text-2xl font-bold text-primary">8th</p>
-                  <p className="text-xs font-medium text-text-secondary">Edition</p>
-                </motion.div>
-
-                <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{
-                    duration: 6,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 0.8,
-                  }}
-                  className="absolute -right-2 sm:right-0 bottom-8 glass rounded-2xl px-5 py-4 shadow-glow"
-                >
-                  <p className="text-2xl font-bold text-primary">CCIS</p>
-                  <p className="text-xs font-medium text-text-secondary">Springer</p>
-                </motion.div>
-              </>
-            )}
+           
 
             <div className="absolute -z-10 -inset-6 bg-gradient-to-br from-primary/8 via-transparent to-accent/10 rounded-[2rem] blur-sm" />
           </motion.div>

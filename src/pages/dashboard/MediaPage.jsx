@@ -46,7 +46,7 @@ export default function MediaPage() {
         />
 
         {message && (
-          <p className={`text-sm ${message.includes("success") ? "text-emerald-600" : "text-red-600"}`}>
+          <p className={`text-sm ${message.includes("success") ? "text-dash-success" : "text-red-600"}`}>
             {message}
           </p>
         )}

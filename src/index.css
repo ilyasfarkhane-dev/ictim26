@@ -11,12 +11,14 @@
   --color-section: #f8fafc;
   --color-border: #e2e8f0;
   --font-sans: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
-  --color-dash-primary: #059669;
-  --color-dash-primary-dark: #047857;
-  --color-dash-bg: #f4f7f6;
+  --color-dash-primary: #1e40af;
+  --color-dash-primary-dark: #1e3a8a;
+  --color-dash-accent: #3b82f6;
+  --color-dash-bg: #eff6ff;
   --color-dash-text: #0f172a;
-  --color-dash-muted: #64748b;
-  --color-dash-border: #e2e8f0;
+  --color-dash-muted: #475569;
+  --color-dash-border: #dbeafe;
+  --color-dash-success: #16a34a;
 }
 
 @layer base {
@@ -89,7 +91,17 @@
     border: 1px solid var(--color-dash-border);
     border-radius: 1rem;
     box-shadow:
-      0 1px 2px rgba(15, 23, 42, 0.04),
-      0 4px 20px rgba(15, 23, 42, 0.03);
+      0 1px 2px rgba(30, 64, 175, 0.04),
+      0 4px 20px rgba(30, 64, 175, 0.05);
+  }
+
+  .dash-nav-active {
+    background: rgba(30, 64, 175, 0.08);
+    color: var(--color-dash-primary);
+    border-left: 3px solid var(--color-dash-primary);
+  }
+
+  .dash-focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dash-primary/40 focus-visible:ring-offset-2;
   }
 }

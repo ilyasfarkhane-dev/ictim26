@@ -60,10 +60,10 @@ export default function ContentPage() {
             key={section.key}
             type="button"
             onClick={() => loadSection(section)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors duration-200 cursor-pointer dash-focus-ring ${
               active === section.key
-                ? "bg-dash-primary text-white"
-                : "bg-white border border-dash-border text-dash-muted hover:text-dash-text"
+                ? "bg-dash-primary text-white shadow-sm"
+                : "bg-white border border-dash-border text-dash-muted hover:bg-blue-50/80 hover:text-dash-text"
             }`}
           >
             {section.label}
@@ -80,7 +80,7 @@ export default function ContentPage() {
           className="font-mono text-xs"
         />
         {message && (
-          <p className={`mt-3 text-sm ${message.includes("success") ? "text-emerald-600" : "text-red-600"}`}>
+          <p className={`mt-3 text-sm ${message.includes("success") ? "text-dash-success" : "text-red-600"}`}>
             {message}
           </p>
         )}
