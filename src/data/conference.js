@@ -37,31 +37,15 @@ export const navLinks = [
 ];
 
 export const heroImages = {
-  main: {
-    src: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=900&q=80",
-    alt: "ICTIM conference auditorium in session",
-  },
-  secondary: [
-    {
-      src: "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=600&q=80",
-      alt: "Keynote speaker presenting research",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&q=80",
-      alt: "Academic networking at conference",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1505373877841-8d25f298cdae?w=600&q=80",
-      alt: "Conference venue and attendees",
-    },
-  ],
+  src: "/assets/hr_bg.jpeg",
+  alt: "ICTIM conference venue — information technology and modeling",
 };
 
 export const heroHighlights = [
-  { value: "Springer", label: "CCIS Proceedings" },
-  { value: "Scopus", label: "Indexed Journals" },
-  { value: "10+", label: "Research Topics" },
-  { value: "6+", label: "Keynote Speakers" },
+  { value: "Springer", label: "CCIS Proceedings", enabled: true },
+  { value: "Scopus", label: "Indexed Journals", enabled: true },
+  { value: "10+", label: "Research Topics", enabled: true },
+  { value: "6+", label: "Keynote Speakers", enabled: true },
 ];
 
 export const submissionGuidelines = {

@@ -1,6 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import * as defaults from "../data/defaults";
 import { fetchAllContent } from "../lib/contentApi";
+import { normalizeHeroImage, resolveHeroBackgroundPath } from "../lib/heroImages";
+import { normalizeHeroHighlights } from "../lib/heroHighlights";
+import { normalizeSpeakers } from "../lib/speakers";
 import { isSupabaseConfigured } from "../lib/supabase";
 
 const ConferenceContext = createContext(null);
@@ -19,8 +22,14 @@ function buildState(remote, fallback) {
   return {
     conference: r.conference ?? fb.conference,
     navLinks: r.navLinks ?? fb.navLinks,
-    heroImages: r.heroImages ?? fb.heroImages,
-    heroHighlights: r.heroHighlights ?? fb.heroHighlights,
+    heroImages: (() => {
+      const heroImage = normalizeHeroImage(r.heroImages ?? fb.heroImages);
+      return {
+        ...heroImage,
+        src: resolveHeroBackgroundPath(heroImage.src),
+      };
+    })(),
+    heroHighlights: normalizeHeroHighlights(r.heroHighlights ?? fb.heroHighlights),
     submissionGuidelines: r.submissionGuidelines ?? fb.submissionGuidelines,
     registrationPricing: r.registrationPricing ?? fb.registrationPricing,
     workshops: dbList(r.workshops, fb.workshops, fromDb),
@@ -38,7 +47,7 @@ function buildState(remote, fallback) {
     },
     partners: dbList(r.partners, fb.partners, fromDb),
     footerLinks: r.footerLinks ?? fb.footerLinks,
-    speakers: dbList(r.speakers, fb.speakers, fromDb),
+    speakers: normalizeSpeakers(dbList(r.speakers, fb.speakers, fromDb)),
     topics: dbList(r.topics, fb.topics, fromDb),
     source: fromDb ? "supabase" : "local",
   };

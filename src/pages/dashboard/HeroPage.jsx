@@ -1,39 +1,64 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  HiOutlinePhoto,
+  HiOutlineChartBar,
+  HiOutlineArrowTopRightOnSquare,
+} from "react-icons/hi2";
+import DashToggle from "../../components/dashboard/DashToggle";
+import StatusBanner from "../../components/dashboard/StatusBanner";
 import DashButton from "../../components/dashboard/DashButton";
 import { DashInput } from "../../components/dashboard/DashInput";
 import ImageUpload from "../../components/dashboard/ImageUpload";
-import CloudinaryImage from "../../components/CloudinaryImage";
 import { useConference } from "../../hooks/useConference";
 import { upsertSetting } from "../../lib/contentApi";
 import { CLOUDINARY_FOLDERS } from "../../lib/cloudinary";
 import { withBase } from "../../config/paths";
+import { normalizeHeroImage } from "../../lib/heroImages";
+import {
+  isHighlightEnabled,
+  normalizeHeroHighlights,
+} from "../../lib/heroHighlights";
+
+function buildFormState(heroImages, heroHighlights) {
+  return {
+    image: normalizeHeroImage(heroImages),
+    highlights: normalizeHeroHighlights(heroHighlights),
+  };
+}
+
+function SectionHeader({ icon: Icon, title, description }) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-dash-primary">
+        <Icon className="w-5 h-5" aria-hidden="true" />
+      </span>
+      <div>
+        <h2 className="text-lg font-bold text-dash-text">{title}</h2>
+        {description && <p className="mt-1 text-sm text-dash-muted leading-relaxed">{description}</p>}
+      </div>
+    </div>
+  );
+}
 
 export default function HeroPage() {
   const { heroImages, heroHighlights, refresh } = useConference();
-  const [form, setForm] = useState({
-    main: { ...heroImages.main },
-    secondary: heroImages.secondary.map((img) => ({ ...img })),
-    highlights: heroHighlights.map((h) => ({ ...h })),
-  });
+  const [savedSnapshot, setSavedSnapshot] = useState(() =>
+    buildFormState(heroImages, heroHighlights)
+  );
+  const [form, setForm] = useState(() => buildFormState(heroImages, heroHighlights));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    setForm({
-      main: { ...heroImages.main },
-      secondary: heroImages.secondary.map((img) => ({ ...img })),
-      highlights: heroHighlights.map((h) => ({ ...h })),
-    });
+    const next = buildFormState(heroImages, heroHighlights);
+    setForm(next);
+    setSavedSnapshot(next);
   }, [heroImages, heroHighlights]);
 
-  const updateSecondary = (index, field, value) => {
-    setForm((f) => ({
-      ...f,
-      secondary: f.secondary.map((img, i) =>
-        i === index ? { ...img, [field]: value } : img
-      ),
-    }));
-  };
+  const isDirty = useMemo(
+    () => JSON.stringify(form) !== JSON.stringify(savedSnapshot),
+    [form, savedSnapshot]
+  );
 
   const updateHighlight = (index, field, value) => {
     setForm((f) => ({
@@ -42,6 +67,7 @@ export default function HeroPage() {
         i === index ? { ...h, [field]: value } : h
       ),
     }));
+    setMessage("");
   };
 
   const handleSave = async (e) => {
@@ -50,13 +76,11 @@ export default function HeroPage() {
     setMessage("");
     try {
       await Promise.all([
-        upsertSetting("hero_images", {
-          main: form.main,
-          secondary: form.secondary,
-        }),
+        upsertSetting("hero_images", form.image),
         upsertSetting("hero_highlights", form.highlights),
       ]);
       await refresh();
+      setSavedSnapshot(form);
       setMessage("Hero section saved successfully.");
     } catch (err) {
       setMessage(err.message);
@@ -66,161 +90,180 @@ export default function HeroPage() {
   };
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-dash-text">Hero Management</h1>
-        <p className="mt-1 text-sm text-dash-muted">
-          Manage the homepage hero images and highlight stats
-        </p>
+    <div className={isDirty ? "pb-24" : ""}>
+      {/* Page header */}
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-dash-muted mb-1">
+            Homepage
+          </p>
+          <h1 className="text-2xl font-bold text-dash-text">Hero Management</h1>
+          <p className="mt-1 text-sm text-dash-muted max-w-xl">
+            Update the hero background and the four highlight stats shown on the homepage.
+          </p>
+        </div>
+        <a
+          href={`${withBase("/")}#home`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-xl border border-dash-border bg-white px-4 py-2.5 text-sm font-medium text-dash-text hover:bg-blue-50/80 hover:border-dash-primary/30 transition-colors duration-200 cursor-pointer dash-focus-ring shrink-0"
+        >
+          View homepage
+          <HiOutlineArrowTopRightOnSquare className="w-4 h-4 text-dash-primary" aria-hidden="true" />
+        </a>
       </div>
 
-      <div className="grid xl:grid-cols-[1fr_320px] gap-8 items-start">
-        <form onSubmit={handleSave} className="space-y-6">
-          <section className="dash-card p-6 space-y-4">
-            <h2 className="text-lg font-bold text-dash-text">Main hero image</h2>
-            <p className="text-sm text-dash-muted">
-              Large image on the left side of the hero section.
-            </p>
-            <ImageUpload
-              value={form.main.src}
-              onChange={(url) => setForm((f) => ({ ...f, main: { ...f.main, src: url } }))}
-              folder={CLOUDINARY_FOLDERS.hero}
-            />
-            <DashInput
-              label="Alt text"
-              value={form.main.alt}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, main: { ...f.main, alt: e.target.value } }))
-              }
-            />
-          </section>
+      {message && <div className="mb-6 max-w-4xl"><StatusBanner message={message} /></div>}
 
-          <section className="dash-card p-6 space-y-6">
-            <div>
-              <h2 className="text-lg font-bold text-dash-text">Secondary images</h2>
-              <p className="mt-1 text-sm text-dash-muted">
-                Three stacked images on the right side of the hero.
-              </p>
-            </div>
-            {form.secondary.map((img, i) => (
+      <form id="hero-form" onSubmit={handleSave} className="space-y-6 max-w-4xl">
+        {/* Hero background */}
+        <section className="dash-card p-6 space-y-6">
+          <SectionHeader
+            icon={HiOutlinePhoto}
+            title="Hero background"
+            description="Full-width background behind the homepage hero text. Default: public/assets/hr_bg.jpeg."
+          />
+
+          <div className="space-y-4 max-w-xl">
+              <ImageUpload
+                label="Upload background"
+                value={form.image.src}
+                onChange={(url) => {
+                  setForm((f) => ({ ...f, image: { ...f.image, src: url } }));
+                  setMessage("");
+                }}
+                folder={CLOUDINARY_FOLDERS.hero}
+                previewClassName="h-40 w-full object-cover rounded-xl bg-dash-bg/30"
+                hint="Recommended: landscape photo (16:9 or wider). JPG or WebP, max 10 MB."
+              />
+          </div>
+        </section>
+
+        {/* Highlight stats */}
+        <section className="dash-card p-6 space-y-6">
+          <SectionHeader
+            icon={HiOutlineChartBar}
+            title="Highlight stats"
+            description="Up to four stat cards below the hero text. Toggle off any stat to hide it on the homepage."
+          />
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            {form.highlights.map((stat, i) => {
+              const enabled = isHighlightEnabled(stat);
+              const toggleId = `hero-stat-toggle-${i}`;
+
+              return (
               <div
                 key={i}
-                className="pt-5 border-t border-dash-border first:pt-0 first:border-0 space-y-3"
+                className={`rounded-xl border p-4 space-y-4 transition-colors duration-200 ${
+                  enabled
+                    ? "border-dash-border bg-white hover:border-dash-primary/20"
+                    : "border-dash-border/80 bg-dash-bg/40 opacity-75"
+                }`}
               >
-                <p className="text-sm font-semibold text-dash-text">Image {i + 1}</p>
-                <ImageUpload
-                  value={img.src}
-                  onChange={(url) => updateSecondary(i, "src", url)}
-                  folder={CLOUDINARY_FOLDERS.hero}
-                />
-                <DashInput
-                  label="Alt text"
-                  value={img.alt}
-                  onChange={(e) => updateSecondary(i, "alt", e.target.value)}
-                />
-              </div>
-            ))}
-          </section>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <DashToggle
+                      id={toggleId}
+                      enabled={enabled}
+                      onChange={(next) => updateHighlight(i, "enabled", next)}
+                      ariaLabel={enabled ? "Stat visible on homepage" : "Stat hidden on homepage"}
+                    />
+                    <div>
+                      <label
+                        htmlFor={toggleId}
+                        className="text-xs font-semibold uppercase tracking-wider text-dash-text cursor-pointer"
+                      >
+                        Stat {i + 1}
+                      </label>
+                      <p className="text-[11px] text-dash-muted mt-0.5">
+                        {enabled ? "Visible on homepage" : "Hidden on homepage"}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                      enabled
+                        ? "bg-blue-50 text-dash-primary"
+                        : "bg-slate-100 text-dash-muted"
+                    }`}
+                  >
+                    {enabled ? "On" : "Off"}
+                  </span>
+                </div>
 
-          <section className="dash-card p-6 space-y-4">
-            <div>
-              <h2 className="text-lg font-bold text-dash-text">Highlight stats</h2>
-              <p className="mt-1 text-sm text-dash-muted">
-                Four stat cards shown below the hero text.
-              </p>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {form.highlights.map((stat, i) => (
                 <div
-                  key={i}
-                  className="rounded-xl border border-dash-border bg-dash-bg/50 p-4 space-y-3"
+                  className={`rounded-xl border px-4 py-3 shadow-sm transition-opacity duration-200 ${
+                    enabled
+                      ? "border-border bg-white/80"
+                      : "border-dash-border bg-white/50 opacity-50"
+                  }`}
+                  aria-hidden={!enabled}
                 >
-                  <p className="text-xs font-semibold uppercase tracking-wider text-dash-muted">
-                    Stat {i + 1}
+                  <p className="text-lg font-bold text-primary tabular-nums">
+                    {stat.value || "—"}
                   </p>
+                  <p className="text-xs font-medium text-dash-muted mt-0.5 truncate">
+                    {stat.label || "Label"}
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-1 border-t border-dash-border">
                   <DashInput
                     label="Value"
                     value={stat.value}
                     onChange={(e) => updateHighlight(i, "value", e.target.value)}
                     placeholder="Springer"
+                    disabled={!enabled}
                   />
                   <DashInput
                     label="Label"
                     value={stat.label}
                     onChange={(e) => updateHighlight(i, "label", e.target.value)}
                     placeholder="CCIS Proceedings"
+                    disabled={!enabled}
                   />
                 </div>
-              ))}
-            </div>
-          </section>
+              </div>
+            );
+            })}
+          </div>
+        </section>
 
-          {message && (
-            <p
-              className={`text-sm ${message.includes("success") ? "text-dash-success" : "text-red-600"}`}
-            >
-              {message}
+        {!isDirty && (
+          <div className="flex justify-end">
+            <DashButton type="submit" disabled={saving || !isDirty}>
+              {saving ? "Saving…" : "Save hero section"}
+            </DashButton>
+          </div>
+        )}
+      </form>
+
+      {/* Sticky save bar when there are unsaved changes */}
+      {isDirty && (
+        <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-dash-border bg-white/95 backdrop-blur-md px-4 py-3 sm:px-6 lg:left-64">
+          <div className="mx-auto flex max-w-4xl items-center justify-between gap-4">
+            <p className="text-sm font-medium text-dash-text">
+              You have unsaved changes
             </p>
-          )}
-
-          <DashButton type="submit" disabled={saving}>
-            {saving ? "Saving…" : "Save hero section"}
-          </DashButton>
-        </form>
-
-        <aside className="dash-card p-5 xl:sticky xl:top-28 space-y-4">
-          <h2 className="text-sm font-bold text-dash-text">Live preview</h2>
-          <div className="rounded-xl overflow-hidden border border-dash-border bg-dash-bg">
-            <div className="grid grid-cols-5 gap-1 p-2 h-48">
-              <div className="col-span-3 row-span-1 rounded-lg overflow-hidden bg-slate-200">
-                {form.main.src && (
-                  <CloudinaryImage
-                    src={form.main.src}
-                    alt=""
-                    width={200}
-                    height={200}
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
-              <div className="col-span-2 grid grid-rows-3 gap-1">
-                {form.secondary.map((img, i) => (
-                  <div key={i} className="rounded-lg overflow-hidden bg-slate-200">
-                    {img.src && (
-                      <CloudinaryImage
-                        src={img.src}
-                        alt=""
-                        width={100}
-                        height={60}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2 p-3 border-t border-dash-border">
-              {form.highlights.map((stat, i) => (
-                <div
-                  key={i}
-                  className="rounded-lg bg-white border border-dash-border px-2 py-1.5 text-center"
-                >
-                  <p className="text-xs font-bold text-dash-primary">{stat.value || "—"}</p>
-                  <p className="text-[10px] text-dash-muted truncate">{stat.label || "Label"}</p>
-                </div>
-              ))}
+            <div className="flex items-center gap-3">
+              <DashButton
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setForm(savedSnapshot);
+                  setMessage("");
+                }}
+              >
+                Discard
+              </DashButton>
+              <DashButton type="submit" form="hero-form" disabled={saving}>
+                {saving ? "Saving…" : "Save changes"}
+              </DashButton>
             </div>
           </div>
-          <a
-            href={`${withBase("/")}#home`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-center text-sm font-medium text-dash-primary hover:underline cursor-pointer"
-          >
-            View on website →
-          </a>
-        </aside>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

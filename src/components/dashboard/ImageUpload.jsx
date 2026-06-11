@@ -1,8 +1,15 @@
 import { useRef, useState } from "react";
 import { HiOutlineCloudArrowUp, HiOutlineTrash } from "react-icons/hi2";
 import { uploadImage, isCloudinaryConfigured } from "../../lib/cloudinary";
+import { withBase } from "../../config/paths";
 import DashButton from "./DashButton";
 import CloudinaryImage from "../CloudinaryImage";
+
+function resolvePreviewSrc(src) {
+  if (!src) return "";
+  if (src.startsWith("/") && !src.startsWith("//")) return withBase(src);
+  return src;
+}
 
 export default function ImageUpload({
   label,
@@ -60,7 +67,7 @@ export default function ImageUpload({
       {value ? (
         <div className="relative overflow-hidden rounded-xl border border-dash-border bg-dash-bg">
           <CloudinaryImage
-            src={value}
+            src={resolvePreviewSrc(value)}
             alt={label || "Preview"}
             width={400}
             className={previewClassName}
@@ -68,7 +75,7 @@ export default function ImageUpload({
           <button
             type="button"
             onClick={() => onChange("")}
-            className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/90 text-red-600 hover:bg-red-50 transition-colors cursor-pointer shadow-sm"
+            className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/90 text-red-600 hover:bg-red-50 transition-colors duration-200 cursor-pointer shadow-sm dash-focus-ring"
             aria-label="Remove image"
           >
             <HiOutlineTrash className="w-4 h-4" />
@@ -79,7 +86,7 @@ export default function ImageUpload({
           type="button"
           onClick={openPicker}
           disabled={uploading || !isCloudinaryConfigured}
-          className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-dash-border bg-dash-bg/50 px-4 py-8 text-dash-muted hover:border-dash-primary hover:text-dash-primary transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-dash-border bg-dash-bg/50 px-4 py-8 text-dash-muted hover:border-dash-primary hover:bg-blue-50/50 hover:text-dash-primary transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed dash-focus-ring"
         >
           <HiOutlineCloudArrowUp className="w-8 h-8" />
           <span className="text-sm font-medium">

@@ -19,6 +19,12 @@ export default function Navbar() {
     setMobileEditionsOpen(false);
   };
 
+  const linkClass = scrolled
+    ? "relative px-4 py-2 text-sm font-medium text-text-secondary hover:text-navy transition-colors duration-200 cursor-pointer group"
+    : "relative px-4 py-2 text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 cursor-pointer group [text-shadow:0_1px_4px_rgba(0,0,0,0.35)]";
+
+  const linkUnderlineClass = scrolled ? "bg-primary" : "bg-white";
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 pt-4 sm:px-6">
       <Container className="max-w-7xl !px-0">
@@ -36,10 +42,10 @@ export default function Navbar() {
               <li key={link.href}>
                 <a
                   href={link.href}
-                  className="relative px-4 py-2 text-sm font-medium text-text-secondary hover:text-navy transition-colors duration-200 cursor-pointer group"
+                  className={linkClass}
                 >
                   {link.label}
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary rounded-full transition-all duration-300 group-hover:w-4/5" />
+                  <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 rounded-full transition-all duration-300 group-hover:w-4/5 ${linkUnderlineClass}`} />
                 </a>
               </li>
             ))}
@@ -47,23 +53,24 @@ export default function Navbar() {
             <NavDropdown
               label={editionsDropdown.label}
               items={editionsDropdown.items}
+              light={!scrolled}
             />
 
             {navLinks.slice(4).map((link) => (
               <li key={link.href}>
                 <a
                   href={link.href}
-                  className="relative px-4 py-2 text-sm font-medium text-text-secondary hover:text-navy transition-colors duration-200 cursor-pointer group"
+                  className={linkClass}
                 >
                   {link.label}
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary rounded-full transition-all duration-300 group-hover:w-4/5" />
+                  <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 rounded-full transition-all duration-300 group-hover:w-4/5 ${linkUnderlineClass}`} />
                 </a>
               </li>
             ))}
           </ul>
 
           <div className="hidden lg:flex items-center gap-3">
-            <Button variant="ghost" size="sm" href="#contact">
+            <Button variant="secondary" size="sm" href="#contact">
               Contact
             </Button>
             <Button variant="primary" size="sm" href="#register-pricing">
@@ -73,7 +80,11 @@ export default function Navbar() {
 
           <button
             type="button"
-            className="lg:hidden p-2 rounded-lg text-navy hover:bg-section transition-colors cursor-pointer"
+            className={`lg:hidden p-2 rounded-lg transition-colors duration-200 cursor-pointer ${
+              scrolled
+                ? "text-navy hover:bg-section"
+                : "text-white hover:bg-white/10 [text-shadow:0_1px_4px_rgba(0,0,0,0.35)]"
+            }`}
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
           >

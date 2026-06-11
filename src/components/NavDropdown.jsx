@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HiOutlineChevronDown } from "react-icons/hi2";
 
-export default function NavDropdown({ label, items, onNavigate }) {
+export default function NavDropdown({ label, items, onNavigate, light = false }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -29,13 +29,21 @@ export default function NavDropdown({ label, items, onNavigate }) {
         onMouseEnter={() => setOpen(true)}
         aria-expanded={open}
         aria-haspopup="true"
-        className="relative flex items-center gap-1 px-4 py-2 text-sm font-medium text-text-secondary hover:text-navy transition-colors duration-200 cursor-pointer group"
+        className={`relative flex items-center gap-1 px-4 py-2 text-sm font-medium transition-colors duration-200 cursor-pointer group ${
+          light
+            ? "text-white/90 hover:text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.35)]"
+            : "text-text-secondary hover:text-navy"
+        }`}
       >
         {label}
         <HiOutlineChevronDown
           className={`w-4 h-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
-        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary rounded-full transition-all duration-300 group-hover:w-4/5" />
+        <span
+          className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 rounded-full transition-all duration-300 group-hover:w-4/5 ${
+            light ? "bg-white" : "bg-primary"
+          }`}
+        />
       </button>
 
       <AnimatePresence>

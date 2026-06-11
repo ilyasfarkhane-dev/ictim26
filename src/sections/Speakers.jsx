@@ -5,8 +5,11 @@ import CloudinaryImage from "../components/CloudinaryImage";
 import { useConference } from "../hooks/useConference";
 import { fadeUp, staggerContainer } from "../utils/animations";
 
+import { getVisibleSpeakers } from "../lib/speakers";
+
 export default function Speakers() {
   const { speakers } = useConference();
+  const visibleSpeakers = getVisibleSpeakers(speakers);
 
   return (
     <section id="speakers" className="py-20 lg:py-28">
@@ -23,7 +26,7 @@ export default function Speakers() {
           viewport={{ once: true, margin: "-60px" }}
           className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {speakers.map((speaker, i) => (
+          {visibleSpeakers.map((speaker, i) => (
             <motion.article
               key={speaker.id}
               variants={fadeUp}

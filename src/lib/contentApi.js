@@ -229,4 +229,22 @@ export async function deleteRow(table, id) {
   if (error) throw error;
 }
 
+/** Persist a new sort order for list rows (speakers, topics, etc.). */
+export async function reorderRows(table, orderedIds) {
+  if (!supabase) throw new Error("Supabase is not configured");
+
+  const updates = orderedIds
+    .map((id, sort_order) => ({ id, sort_order }))
+    .filter(({ id }) => isPersistedId(id));
+
+  const results = await Promise.all(
+    updates.map(({ id, sort_order }) =>
+      supabase.from(table).update({ sort_order }).eq("id", id)
+    )
+  );
+
+  const failed = results.find((r) => r.error);
+  if (failed?.error) throw failed.error;
+}
+
 export { TABLES };

@@ -6,6 +6,7 @@ export function mapSpeaker(row) {
     company: row.company ?? "",
     bio: row.bio ?? "",
     image: row.image_url ?? "",
+    enabled: row.enabled !== false,
   };
 }
 
@@ -70,6 +71,7 @@ export function speakerToRow(speaker, sortOrder = 0) {
     company: speaker.company,
     bio: speaker.bio,
     image_url: speaker.image,
+    enabled: speaker.enabled !== false,
   };
 }
 

@@ -5,7 +5,7 @@ export function DashInput({ label, className = "", ...props }) {
         <span className="mb-1.5 block text-sm font-medium text-dash-text">{label}</span>
       )}
       <input
-        className={`w-full rounded-xl border border-dash-border bg-white px-4 py-2.5 text-sm text-dash-text placeholder:text-dash-muted focus:outline-none focus:ring-2 focus:ring-dash-primary/30 focus:border-dash-primary transition-colors duration-200 dash-focus-ring ${className}`}
+        className={`w-full rounded-xl border border-dash-border bg-white px-4 py-2.5 text-sm text-dash-text placeholder:text-dash-muted focus:outline-none focus:ring-2 focus:ring-dash-primary/30 focus:border-dash-primary transition-colors duration-200 dash-focus-ring disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-dash-bg/50 ${className}`}
         {...props}
       />
     </label>
