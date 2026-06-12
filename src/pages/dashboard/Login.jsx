@@ -47,7 +47,6 @@ export default function Login() {
             Manage speakers, content, media, and site settings for your conference website — all in one place.
           </p>
         </div>
-        <p className="text-sm text-white/60">Secure admin access · Supabase powered</p>
       </div>
 
       {/* Form panel */}
