@@ -9,6 +9,7 @@ import {
   HiOutlineBuildingOffice2,
   HiOutlineUsers,
   HiOutlineLink,
+  HiOutlineRectangleStack,
   HiOutlineCog6Tooth,
   HiOutlineDocumentText,
   HiOutlinePhoto,
@@ -35,6 +36,7 @@ const menuItems = [
 ];
 
 const otherItems = [
+  { to: "/dashboard/editions", label: "Previous Editions", icon: HiOutlineRectangleStack },
   { to: "/dashboard/footer", label: "Footer", icon: HiOutlineLink },
   { to: "/dashboard/settings", label: "Settings", icon: HiOutlineCog6Tooth },
 ];

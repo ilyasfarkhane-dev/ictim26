@@ -50,11 +50,13 @@ export default function Navbar() {
               </li>
             ))}
 
-            <NavDropdown
-              label={editionsDropdown.label}
-              items={editionsDropdown.items}
-              light={!scrolled}
-            />
+            {editionsDropdown.items.length > 0 && (
+              <NavDropdown
+                label={editionsDropdown.label}
+                items={editionsDropdown.items}
+                light={!scrolled}
+              />
+            )}
 
             {navLinks.slice(4).map((link) => (
               <li key={link.href}>
@@ -119,50 +121,52 @@ export default function Navbar() {
                 </li>
               ))}
 
-              <li>
-                <button
-                  type="button"
-                  onClick={() => setMobileEditionsOpen((prev) => !prev)}
-                  aria-expanded={mobileEditionsOpen}
-                  className="flex w-full items-center justify-between px-6 py-3 text-sm font-medium text-navy hover:bg-light-blue/40 transition-colors cursor-pointer"
-                >
-                  {editionsDropdown.label}
-                  <HiOutlineChevronDown
-                    className={`w-4 h-4 transition-transform duration-200 ${mobileEditionsOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
+              {editionsDropdown.items.length > 0 && (
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setMobileEditionsOpen((prev) => !prev)}
+                    aria-expanded={mobileEditionsOpen}
+                    className="flex w-full items-center justify-between px-6 py-3 text-sm font-medium text-navy hover:bg-light-blue/40 transition-colors cursor-pointer"
+                  >
+                    {editionsDropdown.label}
+                    <HiOutlineChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${mobileEditionsOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
 
-                <AnimatePresence>
-                  {mobileEditionsOpen && (
-                    <motion.ul
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden bg-light-blue/20"
-                    >
-                      {editionsDropdown.items.map((item) => (
-                        <li key={item.label}>
-                          <a
-                            href={item.href}
-                            target={item.href.startsWith("http") ? "_blank" : undefined}
-                            rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                            onClick={closeMobile}
-                            className="flex flex-col px-8 py-2.5 text-sm text-navy hover:bg-light-blue/40 transition-colors cursor-pointer"
-                          >
-                            <span className="font-semibold">{item.label}</span>
-                            {item.subtitle && (
-                              <span className="text-xs text-text-secondary mt-0.5">
-                                {item.subtitle}
-                              </span>
-                            )}
-                          </a>
-                        </li>
-                      ))}
-                    </motion.ul>
-                  )}
-                </AnimatePresence>
-              </li>
+                  <AnimatePresence>
+                    {mobileEditionsOpen && (
+                      <motion.ul
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden bg-light-blue/20"
+                      >
+                        {editionsDropdown.items.map((item) => (
+                          <li key={item.id ?? item.label}>
+                            <a
+                              href={item.href}
+                              target={item.href.startsWith("http") ? "_blank" : undefined}
+                              rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                              onClick={closeMobile}
+                              className="flex flex-col px-8 py-2.5 text-sm text-navy hover:bg-light-blue/40 transition-colors cursor-pointer"
+                            >
+                              <span className="font-semibold">{item.label}</span>
+                              {item.subtitle && (
+                                <span className="text-xs text-text-secondary mt-0.5">
+                                  {item.subtitle}
+                                </span>
+                              )}
+                            </a>
+                          </li>
+                        ))}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
+                </li>
+              )}
 
               {navLinks.slice(4).map((link) => (
                 <li key={link.href}>

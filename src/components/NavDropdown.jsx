@@ -58,7 +58,7 @@ export default function NavDropdown({ label, items, onNavigate, light = false })
           >
             {items.map((item) => (
               <a
-                key={item.label}
+                key={item.id ?? item.label}
                 href={item.href}
                 target={item.href.startsWith("http") ? "_blank" : undefined}
                 rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}

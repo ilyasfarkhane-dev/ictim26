@@ -18,6 +18,7 @@ export {
 
 export { committees } from "./committees";
 export { footer } from "./footer";
+export { heroContent } from "./heroContent";
 
 export { speakers } from "./speakers";
 export { topics } from "./categories";

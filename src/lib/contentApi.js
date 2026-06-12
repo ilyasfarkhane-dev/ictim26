@@ -163,6 +163,7 @@ export async function fetchAllContent() {
     sectionSettings: settings.section_settings ?? null,
     heroImages: settings.hero_images ?? null,
     heroHighlights: settings.hero_highlights ?? null,
+    heroContent: settings.hero_content ?? null,
     navLinks: settings.nav_links ?? null,
     footer: settings.footer ?? null,
     footerLinks: settings.footer_links ?? null,

@@ -3,6 +3,7 @@ import * as defaults from "../data/defaults";
 import { fetchAllContent } from "../lib/contentApi";
 import { normalizeHeroImage, resolveHeroBackgroundPath } from "../lib/heroImages";
 import { normalizeHeroHighlights } from "../lib/heroHighlights";
+import { normalizeHeroContent } from "../lib/heroContent";
 import { normalizeDates } from "../lib/dates";
 import { normalizeSpeakers } from "../lib/speakers";
 import { normalizeTopics } from "../lib/topics";
@@ -13,6 +14,7 @@ import { normalizeCommittees } from "../lib/committees";
 import { normalizeFooter } from "../lib/footer";
 import { normalizeRegistrationPricing } from "../lib/registrationPricing";
 import { normalizeWorkshops } from "../lib/workshops";
+import { getPublicEditionsDropdown, normalizeEditionsDropdown } from "../lib/previousEditions";
 import { isSupabaseConfigured } from "../lib/supabase";
 
 const ConferenceContext = createContext(null);
@@ -28,7 +30,10 @@ function buildState(remote, fallback) {
   const fromDb = Boolean(remote);
 
   const conference = r.conference ?? fb.conference;
-  const previousEditions = r.previousEditions ?? fb.previousEditions;
+  const editionsDropdownRaw = normalizeEditionsDropdown(
+    r.previousEditions ?? null,
+    fb.editionsDropdown
+  );
   return {
     conference,
     navLinks: r.navLinks ?? fb.navLinks,
@@ -40,6 +45,11 @@ function buildState(remote, fallback) {
       };
     })(),
     heroHighlights: normalizeHeroHighlights(r.heroHighlights ?? fb.heroHighlights),
+    heroContent: normalizeHeroContent(
+      r.heroContent ?? fb.heroContent,
+      conference,
+      fb.heroContent
+    ),
     submissionGuidelines: r.submissionGuidelines ?? fb.submissionGuidelines,
     registrationPricing: normalizeRegistrationPricing(
       r.registrationPricing ?? fb.registrationPricing,
@@ -54,15 +64,8 @@ function buildState(remote, fallback) {
     ),
     quickLinks: dbList(r.quickLinks, fb.quickLinks, fromDb),
     participationSteps: normalizeDates(dbList(r.participationSteps, fb.participationSteps, fromDb)),
-    previousEditions,
-    editionsDropdown: {
-      label: "Previous Editions",
-      items: previousEditions.map((e) => ({
-        label: e.name,
-        subtitle: e.category,
-        href: e.href,
-      })),
-    },
+    editionsDropdown: getPublicEditionsDropdown(editionsDropdownRaw),
+    editionsDropdownAdmin: editionsDropdownRaw,
     partners: normalizePartners(dbList(r.partners, fb.partners, fromDb)),
     footer: normalizeFooter(
       r.footer ?? (r.footerLinks ? { legacy: r.footerLinks } : null),

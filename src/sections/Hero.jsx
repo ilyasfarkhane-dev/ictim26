@@ -19,12 +19,14 @@ import {
   resolveHeroSrc,
 } from "../lib/heroImages";
 import { getVisibleHeroHighlights } from "../lib/heroHighlights";
+import { getVisibleHeroCtas } from "../lib/heroContent";
 
 export default function Hero() {
-  const { conference, heroHighlights, heroImages } = useConference();
+  const { heroContent, heroHighlights, heroImages } = useConference();
   const heroBackground = normalizeHeroImage(heroImages);
   const bgSrc = resolveHeroSrc(heroBackground.src);
   const visibleHighlights = getVisibleHeroHighlights(heroHighlights);
+  const visibleCtas = getVisibleHeroCtas(heroContent);
 
   return (
     <section
@@ -56,32 +58,48 @@ export default function Hero() {
           animate="visible"
           className="[text-shadow:0_2px_12px_rgba(0,0,0,0.45)]"
         >
-          <Badge>International Conference · TIM Laboratory</Badge>
+          {heroContent.badge && <Badge>{heroContent.badge}</Badge>}
 
-          <p className="mt-5 text-sm font-bold uppercase tracking-[0.2em] text-white/90">
-            {conference.fullName}
-          </p>
+          {heroContent.fullName && (
+            <p className="mt-5 text-sm font-bold uppercase tracking-[0.2em] text-white/90">
+              {heroContent.fullName}
+            </p>
+          )}
 
-          <h1 className="mt-4 text-[2.75rem] sm:text-5xl lg:text-6xl xl:text-[4.5rem] font-extrabold tracking-tight text-white leading-[1.05]">
-            {conference.name}
-          </h1>
+          {heroContent.title && (
+            <h1 className="mt-4 text-[2.75rem] sm:text-5xl lg:text-6xl xl:text-[4.5rem] font-extrabold tracking-tight text-white leading-[1.05]">
+              {heroContent.title}
+            </h1>
+          )}
 
-          <p className="mt-3 text-xl sm:text-2xl font-bold text-white leading-snug">
-            Information Technology & Modeling
-          </p>
+          {heroContent.subtitle && (
+            <p className="mt-3 text-xl sm:text-2xl font-bold text-white leading-snug">
+              {heroContent.subtitle}
+            </p>
+          )}
 
-          <p className="mt-5 text-base sm:text-lg font-medium text-white/90 leading-relaxed border-l-4 border-white/70 pl-4">
-            {conference.tagline}
-          </p>
+          {heroContent.tagline && (
+            <p className="mt-5 text-base sm:text-lg font-medium text-white/90 leading-relaxed border-l-4 border-white/70 pl-4">
+              {heroContent.tagline}
+            </p>
+          )}
 
-          <p className="mt-4 text-base text-white/80 leading-relaxed max-w-lg">
-            {conference.publication}
-          </p>
+          {heroContent.publication && (
+            <p className="mt-4 text-base text-white/80 leading-relaxed max-w-lg">
+              {heroContent.publication}
+            </p>
+          )}
 
-          <div className="mt-7 flex flex-row flex-nowrap items-center gap-2.5">
-            <MetaPill icon={HiOutlineCalendarDays}>{conference.dates}</MetaPill>
-            <MetaPill icon={HiOutlineMapPin}>{conference.venue}</MetaPill>
-          </div>
+          {(heroContent.dates || heroContent.venue) && (
+            <div className="mt-7 flex flex-row flex-nowrap items-center gap-2.5">
+              {heroContent.dates && (
+                <MetaPill icon={HiOutlineCalendarDays}>{heroContent.dates}</MetaPill>
+              )}
+              {heroContent.venue && (
+                <MetaPill icon={HiOutlineMapPin}>{heroContent.venue}</MetaPill>
+              )}
+            </div>
+          )}
 
           {visibleHighlights.length > 0 && (
             <motion.div
@@ -108,15 +126,29 @@ export default function Hero() {
             </motion.div>
           )}
 
-          <div className="mt-10 flex flex-row flex-nowrap items-center gap-3 sm:gap-4">
-            <Button variant="primary" size="lg" href="#call-for-papers" className="shrink-0">
-              Call for Papers
-              <HiOutlineArrowRight className="w-5 h-5" />
-            </Button>
-            <Button variant="secondary" size="lg" href="#important-dates" className="shrink-0 border-white/50 text-white bg-white/10 hover:bg-white/20 hover:border-white/70 shadow-sm">
-              Important Dates
-            </Button>
-          </div>
+          {visibleCtas.length > 0 && (
+            <div className="mt-10 flex flex-row flex-wrap items-center gap-3 sm:gap-4">
+              {visibleCtas.map((cta) => {
+                const isPrimary = cta.variant !== "secondary";
+                return (
+                  <Button
+                    key={cta.id}
+                    variant={isPrimary ? "primary" : "secondary"}
+                    size="lg"
+                    href={cta.href}
+                    className={
+                      isPrimary
+                        ? "shrink-0"
+                        : "shrink-0 border-white/50 text-white bg-white/10 hover:bg-white/20 hover:border-white/70 shadow-sm"
+                    }
+                  >
+                    {cta.label}
+                    {isPrimary && <HiOutlineArrowRight className="w-5 h-5" />}
+                  </Button>
+                );
+              })}
+            </div>
+          )}
         </motion.div>
       </div>
     </section>

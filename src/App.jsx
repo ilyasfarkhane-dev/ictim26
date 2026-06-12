@@ -17,6 +17,7 @@ import SettingsPage from "./pages/dashboard/SettingsPage";
 import ContentPage from "./pages/dashboard/ContentPage";
 import MediaPage from "./pages/dashboard/MediaPage";
 import HeroPage from "./pages/dashboard/HeroPage";
+import EditionsPage from "./pages/dashboard/EditionsPage";
 
 export default function App() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="sponsors" element={<SponsorsPage />} />
           <Route path="committees" element={<CommitteesPage />} />
           <Route path="footer" element={<FooterPage />} />
+          <Route path="editions" element={<EditionsPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="content" element={<ContentPage />} />
           <Route path="media" element={<MediaPage />} />
