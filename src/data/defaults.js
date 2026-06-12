@@ -5,6 +5,7 @@ export {
   heroHighlights,
   submissionGuidelines,
   registrationPricing,
+  sectionSettings,
   workshops,
   callForPapers,
   quickLinks,
@@ -14,6 +15,9 @@ export {
   partners,
   footerLinks,
 } from "./conference";
+
+export { committees } from "./committees";
+export { footer } from "./footer";
 
 export { speakers } from "./speakers";
 export { topics } from "./categories";

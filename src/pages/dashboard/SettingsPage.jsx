@@ -92,11 +92,7 @@ export default function SettingsPage() {
             value={form.registrationUrl}
             onChange={(e) => update("registrationUrl", e.target.value)}
           />
-          <DashInput
-            label="Website URL"
-            value={form.websiteUrl}
-            onChange={(e) => update("websiteUrl", e.target.value)}
-          />
+          
         </div>
         <DashInput
           label="Contact email"

@@ -7,6 +7,8 @@ import {
   HiOutlineCalendarDays,
   HiOutlineAcademicCap,
   HiOutlineBuildingOffice2,
+  HiOutlineUsers,
+  HiOutlineLink,
   HiOutlineCog6Tooth,
   HiOutlineDocumentText,
   HiOutlinePhoto,
@@ -27,11 +29,13 @@ const menuItems = [
   { to: "/dashboard/dates", label: "Important Dates", icon: HiOutlineCalendarDays },
   { to: "/dashboard/workshops", label: "Workshops", icon: HiOutlineAcademicCap },
   { to: "/dashboard/sponsors", label: "Sponsors", icon: HiOutlineBuildingOffice2 },
+  { to: "/dashboard/committees", label: "Committees", icon: HiOutlineUsers },
   { to: "/dashboard/content", label: "Content", icon: HiOutlineDocumentText },
   { to: "/dashboard/media", label: "Media", icon: HiOutlinePhoto },
 ];
 
 const otherItems = [
+  { to: "/dashboard/footer", label: "Footer", icon: HiOutlineLink },
   { to: "/dashboard/settings", label: "Settings", icon: HiOutlineCog6Tooth },
 ];
 
@@ -70,8 +74,8 @@ function SidebarContent({ onNavigate }) {
   };
 
   return (
-    <>
-      <div className="flex items-center gap-2.5 px-2 mb-8">
+    <div className="flex min-h-full flex-col">
+      <div className="flex items-center gap-2.5 px-2 mb-8 shrink-0">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-dash-primary text-white font-bold text-sm shadow-sm">
           IC
         </div>
@@ -112,12 +116,7 @@ function SidebarContent({ onNavigate }) {
         <div className="rounded-2xl bg-gradient-to-br from-dash-primary to-dash-primary-dark p-5 text-white relative overflow-hidden">
           <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-white/10" />
           <p className="relative text-sm font-bold">Manage {conference.name}</p>
-          <p className="relative mt-1 text-xs text-white/75 flex items-center gap-1.5">
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${isLive ? "bg-green-400" : "bg-amber-300"}`}
-            />
-            {isLive ? "Live from Supabase" : "Using local defaults"}
-          </p>
+         
           <Link
             to="/"
             target="_blank"
@@ -141,7 +140,7 @@ function SidebarContent({ onNavigate }) {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -156,8 +155,8 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-dash-bg flex">
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-white border-r border-dash-border p-5">
+      {/* Desktop sidebar — fixed, scrolls independently when menu is tall */}
+      <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-64 flex-col bg-white border-r border-dash-border p-5 overflow-y-auto">
         <SidebarContent />
       </aside>
 
@@ -184,7 +183,7 @@ export default function DashboardLayout() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
         <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-dash-border px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex items-center gap-4">
             <button

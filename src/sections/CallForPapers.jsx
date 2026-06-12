@@ -8,6 +8,7 @@ import {
 import Container from "../components/Container";
 import Button from "../components/Button";
 import { useConference } from "../hooks/useConference";
+import { isCallForPapersSectionEnabled } from "../lib/sectionSettings";
 import { fadeUp, slideFromLeft, slideFromRight, staggerContainer } from "../utils/animations";
 
 function InfoCard({ icon: Icon, title, items, delay = 0 }) {
@@ -37,7 +38,11 @@ function InfoCard({ icon: Icon, title, items, delay = 0 }) {
 }
 
 export default function CallForPapers() {
-  const { conference, callForPapers } = useConference();
+  const { callForPapers, sectionSettings } = useConference();
+
+  if (!isCallForPapersSectionEnabled(sectionSettings)) return null;
+
+  const { cta } = callForPapers;
 
   return (
     <section id="call-for-papers" className="py-20 lg:py-28 bg-white">
@@ -59,15 +64,17 @@ export default function CallForPapers() {
               {callForPapers.intro}
             </p>
             <div className="mt-8">
-              <Button
-                variant="primary"
-                size="lg"
-                href={conference.registrationUrl}
-                className="inline-flex"
-              >
-                Submit Your Research
-                <HiOutlineArrowTopRightOnSquare className="w-5 h-5" />
-              </Button>
+              {cta.href ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  href={cta.href}
+                  className="inline-flex"
+                >
+                  {cta.label}
+                  <HiOutlineArrowTopRightOnSquare className="w-5 h-5" />
+                </Button>
+              ) : null}
             </div>
           </motion.div>
 

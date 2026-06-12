@@ -24,12 +24,14 @@ import {
   updateRow,
   deleteRow,
   reorderRows,
+  lookupPersistedId,
 } from "../../lib/contentApi";
 import { CLOUDINARY_FOLDERS } from "../../lib/cloudinary";
 import { isPersistedId } from "../../lib/ids";
 import { speakerToRow } from "../../lib/mappers";
 import { withBase } from "../../config/paths";
-import { isSpeakerEnabled, normalizeSpeakers } from "../../lib/speakers";
+import { isSpeakerEnabled, normalizeSpeaker, normalizeSpeakers } from "../../lib/speakers";
+import { formatSpeakerSaveError } from "../../lib/speakerErrors";
 
 const emptySpeaker = () => ({
   name: "",
@@ -65,6 +67,12 @@ function moveItem(list, index, direction) {
   return next;
 }
 
+async function resolveSpeakerId(speaker) {
+  if (!speaker) return null;
+  if (speaker.id && isPersistedId(speaker.id)) return speaker.id;
+  return lookupPersistedId("speakers", speaker);
+}
+
 export default function SpeakersPage() {
   const { speakers, refresh } = useConference();
   const [ordered, setOrdered] = useState(() => normalizeSpeakers(speakers));
@@ -75,17 +83,26 @@ export default function SpeakersPage() {
   const [reordering, setReordering] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingSpeakerId, setEditingSpeakerId] = useState(null);
+  const editingSpeakerIdRef = useRef(null);
   const [form, setForm] = useState(emptySpeaker());
   const [saving, setSaving] = useState(false);
+  const [resolvingId, setResolvingId] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [togglingId, setTogglingId] = useState(null);
+  const skipNextSyncRef = useRef(false);
   const orderedRef = useRef(ordered);
   orderedRef.current = ordered;
 
   const canReorder = !search.trim() && filter === "all";
 
   useEffect(() => {
+    if (skipNextSyncRef.current) {
+      skipNextSyncRef.current = false;
+      return;
+    }
     setOrdered(normalizeSpeakers(speakers));
   }, [speakers]);
 
@@ -148,40 +165,79 @@ export default function SpeakersPage() {
     await persistOrder(next);
   };
 
-  const toggleEnabled = async (speaker) => {
-    const next = !speaker.enabled;
+  const toggleEnabled = async (speaker, next) => {
+    if (togglingId === speaker.id) return;
+
+    const previous = isSpeakerEnabled(speaker);
+    const rowId = isPersistedId(speaker.id) ? speaker.id : null;
+
+    setTogglingId(speaker.id);
     setOrdered((prev) =>
       prev.map((s) => (s.id === speaker.id ? { ...s, enabled: next } : s))
     );
-    if (!isPersistedId(speaker.id)) return;
+
     try {
-      await updateRow("speakers", speaker.id, { enabled: next });
-      await refresh();
+      const id = rowId ?? (await resolveSpeakerId(speaker));
+      if (!id) {
+        throw new Error("Could not find this speaker in the database. Refresh and try again.");
+      }
+
+      const updated = await updateRow("speakers", id, { enabled: next });
+      const normalized = normalizeSpeaker(updated);
+
+      setOrdered((prev) =>
+        prev.map((s) =>
+          s.id === speaker.id || s.id === normalized.id ? normalized : s
+        )
+      );
+      skipNextSyncRef.current = true;
+      refresh();
       setMessage(next ? "Speaker is now visible on the site." : "Speaker hidden from the site.");
     } catch (err) {
-      setMessage(err.message);
-      await refresh();
+      setOrdered((prev) =>
+        prev.map((s) => (s.id === speaker.id ? { ...s, enabled: previous } : s))
+      );
+      setMessage(formatSpeakerSaveError(err.message));
+    } finally {
+      setTogglingId(null);
     }
   };
 
   const openCreate = () => {
-    setEditing(null);
+    setIsEditing(false);
+    setEditingSpeakerId(null);
+    editingSpeakerIdRef.current = null;
     setForm(emptySpeaker());
     setError("");
     setModalOpen(true);
   };
 
-  const openEdit = (speaker) => {
-    setEditing(speaker);
+  const openEdit = async (speaker) => {
+    setIsEditing(true);
     setForm({ ...speaker });
     setError("");
     setModalOpen(true);
+    setResolvingId(true);
+
+    try {
+      const id = await resolveSpeakerId(speaker);
+      editingSpeakerIdRef.current = id;
+      setEditingSpeakerId(id);
+      if (!id) {
+        setError("Could not link this speaker to the database. Refresh and try again.");
+      }
+    } finally {
+      setResolvingId(false);
+    }
   };
 
   const openDuplicate = (speaker) => {
-    setEditing(null);
+    setIsEditing(false);
+    setEditingSpeakerId(null);
+    editingSpeakerIdRef.current = null;
     setForm({
       ...speaker,
+      id: undefined,
       name: `${speaker.name} (copy)`,
       enabled: false,
     });
@@ -189,24 +245,51 @@ export default function SpeakersPage() {
     setModalOpen(true);
   };
 
+  const closeModal = () => {
+    setModalOpen(false);
+    setIsEditing(false);
+    setEditingSpeakerId(null);
+    editingSpeakerIdRef.current = null;
+    setError("");
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
-    setSaving(true);
     setError("");
+
+    if (!form.image?.trim()) {
+      setError("Please upload a speaker photo before saving.");
+      return;
+    }
+
+    setSaving(true);
     try {
       const row = speakerToRow(form, ordered.length);
       const { sort_order: _sort, ...updates } = row;
 
-      if (editing?.id && isPersistedId(editing.id)) {
-        await updateRow("speakers", editing.id, updates);
+      if (isEditing) {
+        let id =
+          editingSpeakerIdRef.current ??
+          editingSpeakerId ??
+          (form.id && isPersistedId(form.id) ? form.id : null);
+
+        if (!id) {
+          id = await lookupPersistedId("speakers", form);
+        }
+
+        if (!id) {
+          throw new Error("Could not find this speaker in the database. Refresh the page and try again.");
+        }
+
+        await updateRow("speakers", id, updates);
       } else {
         await createRow("speakers", row);
       }
       await refresh();
-      setModalOpen(false);
+      closeModal();
       setMessage("Speaker saved successfully.");
     } catch (err) {
-      setError(err.message);
+      setError(formatSpeakerSaveError(err.message));
     } finally {
       setSaving(false);
     }
@@ -214,9 +297,10 @@ export default function SpeakersPage() {
 
   const handleDelete = async (speaker) => {
     if (!window.confirm(`Delete "${speaker.name}"?`)) return;
-    if (!isPersistedId(speaker.id)) return;
     try {
-      await deleteRow("speakers", speaker.id);
+      const id = await resolveSpeakerId(speaker);
+      if (!id) return;
+      await deleteRow("speakers", id);
       await refresh();
       setMessage("Speaker deleted.");
     } catch (err) {
@@ -397,7 +481,8 @@ export default function SpeakersPage() {
                     <DashToggle
                       id={`speaker-toggle-${speaker.id}`}
                       enabled={enabled}
-                      onChange={() => toggleEnabled(speaker)}
+                      disabled={togglingId === speaker.id}
+                      onChange={(next) => toggleEnabled(speaker, next)}
                       ariaLabel={`${enabled ? "Hide" : "Show"} ${speaker.name} on website`}
                     />
 
@@ -422,14 +507,7 @@ export default function SpeakersPage() {
                       </button>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => openDuplicate(speaker)}
-                      className="p-2 rounded-lg text-dash-muted hover:bg-blue-50 hover:text-dash-primary transition-colors duration-200 cursor-pointer dash-focus-ring"
-                      aria-label="Duplicate"
-                    >
-                      <HiOutlineDocumentDuplicate className="w-4 h-4" />
-                    </button>
+                    
                     <button
                       type="button"
                       onClick={() => openEdit(speaker)}
@@ -459,9 +537,9 @@ export default function SpeakersPage() {
       </p>
 
       <DashModal
-        title={editing ? "Edit speaker" : "Add speaker"}
+        title={isEditing ? "Edit speaker" : "Add speaker"}
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={closeModal}
         wide
       >
         <form onSubmit={handleSave} className="space-y-4">
@@ -513,11 +591,11 @@ export default function SpeakersPage() {
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           <div className="flex justify-end gap-3 pt-2">
-            <DashButton variant="secondary" type="button" onClick={() => setModalOpen(false)}>
+            <DashButton variant="secondary" type="button" onClick={closeModal}>
               Cancel
             </DashButton>
-            <DashButton type="submit" disabled={saving}>
-              {saving ? "Saving…" : "Save speaker"}
+            <DashButton type="submit" disabled={saving || resolvingId}>
+              {saving ? "Saving…" : resolvingId ? "Loading…" : "Save speaker"}
             </DashButton>
           </div>
         </form>

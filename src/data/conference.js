@@ -30,7 +30,7 @@ export const conference = {
 
 export const navLinks = [
   { label: "Home", href: "#home" },
-  { label: "Committee", href: "#about" },
+  { label: "Committee", href: "#committees" },
   { label: "Topics", href: "#topics" },
   { label: "Program", href: "#important-dates" },
   { label: "Contact", href: "#contact" },
@@ -104,23 +104,51 @@ export const submissionGuidelines = {
 };
 
 export const registrationPricing = {
-  plan: {
-    badge: "Best Plan",
-    title: "In-Person",
-    price: 600,
-    currency: "MAD",
-    features: [
-      "Communication Certificate",
-      "Certificate of Participation",
-      "Conference Materials",
-      "Access to Exhibitions",
-      "Lunch and Tea/Coffee Breaks",
-      "Conference Documents",
-      "Briefcase | Proceedings Report",
-      "Notebook | Pen",
-      "Badge | Brochure | Program",
-    ],
-  },
+  plans: [
+    {
+      id: "in-person",
+      badge: "Best Plan",
+      title: "In-Person",
+      price: 600,
+      currency: "MAD",
+      enabled: true,
+      features: [
+        "Communication Certificate",
+        "Certificate of Participation",
+        "Conference Materials",
+        "Access to Exhibitions",
+        "Lunch and Tea/Coffee Breaks",
+        "Conference Documents",
+        "Briefcase | Proceedings Report",
+        "Notebook | Pen",
+        "Badge | Brochure | Program",
+      ],
+    },
+    {
+      id: "virtual",
+      badge: "Remote",
+      title: "Virtual",
+      price: 350,
+      currency: "MAD",
+      enabled: true,
+      features: [
+        "Certificate of Participation",
+        "Digital Conference Materials",
+        "Online session access",
+        "Conference documents (PDF)",
+      ],
+    },
+  ],
+};
+
+/** Global homepage section visibility toggles (managed from dashboard). */
+export const sectionSettings = {
+  workshops: { enabled: true },
+  sponsors: { enabled: true },
+  callForPapers: { enabled: true },
+  submissionGuidelines: { enabled: true },
+  registrationFees: { enabled: true },
+  committees: { enabled: true },
 };
 
 export const workshops = [
@@ -208,6 +236,10 @@ export const callForPapers = {
     "Original, unpublished research contributions",
     "Manuscripts must include references",
   ],
+  cta: {
+    label: "Submit Your Research",
+    href: "https://www.conference-tim.com/",
+  },
 };
 
 export const quickLinks = [
@@ -236,7 +268,7 @@ export const quickLinks = [
     id: 4,
     title: "Committees",
     description: "Organizing, program, and scientific committee members.",
-    href: "#about",
+    href: "#committees",
     icon: "users",
   },
 ];
@@ -383,7 +415,7 @@ export const partners = [
 export const footerLinks = {
   "Practical Links": [
     { label: "Registration", href: "#register-pricing" },
-    { label: "Committee", href: "#about" },
+    { label: "Committee", href: "#committees" },
     { label: "Topics", href: "#topics" },
     { label: "Program", href: "#important-dates" },
   ],
@@ -401,6 +433,6 @@ export const footerLinks = {
     },
     { label: "Submission Guidelines", href: "#submission-guidelines" },
     { label: "Official Website", href: "https://www.conference-tim.com/" },
-    { label: "TIM Laboratory", href: "#about" },
+    { label: "TIM Laboratory", href: "#committees" },
   ],
 };

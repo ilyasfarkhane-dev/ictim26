@@ -6,9 +6,12 @@ import {
   HiOutlineScale,
   HiOutlineShieldCheck,
   HiOutlineCheckCircle,
+  HiOutlineArrowTopRightOnSquare,
+  HiOutlineArrowRight,
 } from "react-icons/hi2";
 import Container from "../components/Container";
 import { useConference } from "../hooks/useConference";
+import { isSubmissionGuidelinesSectionEnabled } from "../lib/sectionSettings";
 import { fadeUp, staggerContainer } from "../utils/animations";
 
 const iconMap = {
@@ -16,6 +19,10 @@ const iconMap = {
   format: HiOutlineDocumentText,
   requirements: HiOutlineClipboardDocumentList,
 };
+
+function isExternalLink(href) {
+  return typeof href === "string" && /^https?:\/\//i.test(href.trim());
+}
 
 function CheckList({ items }) {
   return (
@@ -31,8 +38,10 @@ function CheckList({ items }) {
 }
 
 function PillarCard({ pillar, index }) {
-  const Icon = iconMap[pillar.icon];
-  const isExternal = pillar.pillHref.startsWith("http");
+  const Icon = iconMap[pillar.icon] ?? HiOutlineDocumentText;
+  const NavIcon = isExternalLink(pillar.pillHref) ? HiOutlineArrowTopRightOnSquare : HiOutlineArrowRight;
+  const href = pillar.pillHref?.trim() || "#";
+  const isExternal = isExternalLink(href);
 
   return (
     <motion.article
@@ -41,11 +50,23 @@ function PillarCard({ pillar, index }) {
       className="flex flex-col"
     >
       <a
-        href={pillar.pillHref}
+        href={href}
         {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className="self-start inline-flex items-center rounded-full bg-light-blue px-4 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition-colors duration-200 cursor-pointer"
+        aria-label={
+          isExternal
+            ? `${pillar.pill} (opens in a new tab)`
+            : `${pillar.pill} (go to section)`
+        }
+        className="group self-start inline-flex items-center gap-2 rounded-full border border-primary/15 bg-light-blue pl-3 pr-1.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white hover:border-primary transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
       >
-        {pillar.pill}
+        <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
+        <span>{pillar.pill}</span>
+        <span
+          className="ml-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-white/20 group-hover:text-white transition-colors duration-200"
+          aria-hidden="true"
+        >
+          <NavIcon className="w-3.5 h-3.5" />
+        </span>
       </a>
 
       <div className="mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-light-blue text-primary">
@@ -75,7 +96,9 @@ function EthicsCard({ icon: Icon, title, items, delay = 0 }) {
 }
 
 export default function SubmissionGuidelines() {
-  const { conference, submissionGuidelines } = useConference();
+  const { conference, submissionGuidelines, sectionSettings } = useConference();
+
+  if (!isSubmissionGuidelinesSectionEnabled(sectionSettings)) return null;
 
   return (
     <section id="submission-guidelines" className="py-20 lg:py-28 bg-white">

@@ -7,6 +7,9 @@ import {
 } from "react-icons/hi2";
 import CloudinaryImage from "../components/CloudinaryImage";
 import Container from "../components/Container";
+import { getVisiblePlans } from "../lib/registrationPricing";
+import { getVisibleWorkshops } from "../lib/workshops";
+import { isWorkshopsSectionEnabled, isRegistrationFeesSectionEnabled } from "../lib/sectionSettings";
 import Button from "../components/Button";
 import { useConference } from "../hooks/useConference";
 import { fadeUp, staggerContainer } from "../utils/animations";
@@ -35,21 +38,26 @@ function SectionSidebar({ step, label, title, subtitle, note }) {
   );
 }
 
-function PricingCard({ registrationPricing, conference }) {
-  const { plan } = registrationPricing;
+function PricingCard({ plan, index = 0 }) {
+  if (!plan) return null;
+
+  const features = Array.isArray(plan.features) ? plan.features : [];
 
   return (
     <motion.article
       variants={fadeUp}
-      className="max-w-sm rounded-2xl bg-white border border-border p-7 sm:p-8 shadow-premium hover:border-primary/20 transition-colors duration-300"
+      custom={index * 0.08}
+      className="flex flex-col h-full rounded-2xl bg-white border border-border p-7 sm:p-8 shadow-premium hover:border-primary/20 transition-colors duration-300"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-light-blue text-primary">
           <HiOutlineUserGroup className="w-6 h-6" />
         </div>
-        <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-          {plan.badge}
-        </span>
+        {plan.badge ? (
+          <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+            {plan.badge}
+          </span>
+        ) : null}
       </div>
 
       <h4 className="mt-6 text-sm font-bold uppercase tracking-wider text-navy">
@@ -61,25 +69,13 @@ function PricingCard({ registrationPricing, conference }) {
       </p>
 
       <ul className="mt-8 space-y-3.5">
-        {plan.features.map((feature) => (
+        {features.map((feature) => (
           <li key={feature} className="flex items-start gap-2.5">
             <HiOutlineCheckCircle className="w-5 h-5 shrink-0 text-primary mt-0.5" />
             <span className="text-sm text-text-secondary leading-relaxed">{feature}</span>
           </li>
         ))}
       </ul>
-
-      <div className="mt-8">
-        <Button
-          variant="primary"
-          size="md"
-          href={conference.registrationUrl}
-          className="w-full"
-        >
-          Register
-          <HiOutlineArrowTopRightOnSquare className="w-4 h-4" />
-        </Button>
-      </div>
     </motion.article>
   );
 }
@@ -165,11 +161,18 @@ function WorkshopCard({ workshop, index, conference }) {
 }
 
 export default function RegisterPricing() {
-  const { conference, registrationPricing, workshops } = useConference();
+  const { conference, registrationPricing, workshops, sectionSettings } = useConference();
+  const feesSectionEnabled = isRegistrationFeesSectionEnabled(sectionSettings);
+  const workshopsSectionEnabled = isWorkshopsSectionEnabled(sectionSettings);
+  const visiblePlans = getVisiblePlans(registrationPricing);
+  const visibleWorkshops = getVisibleWorkshops(workshops);
+
+  if (!feesSectionEnabled && !workshopsSectionEnabled) return null;
 
   return (
     <section id="register-pricing" className="py-20 lg:py-28 bg-section">
       <Container className="space-y-20 lg:space-y-28">
+        {feesSectionEnabled && (
         <div className="grid lg:grid-cols-[minmax(0,300px)_1fr] gap-8 lg:gap-12 items-start">
           <motion.div
             variants={fadeUp}
@@ -185,15 +188,30 @@ export default function RegisterPricing() {
           </motion.div>
 
           <motion.div
-            variants={fadeUp}
+            variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-60px" }}
+            className={`grid gap-6 ${
+              visiblePlans.length > 1
+                ? "sm:grid-cols-2 xl:grid-cols-3"
+                : "max-w-sm"
+            }`}
           >
-            <PricingCard registrationPricing={registrationPricing} conference={conference} />
+            {visiblePlans.length === 0 ? (
+              <p className="col-span-full text-sm text-text-secondary py-8 text-center rounded-2xl border border-dashed border-border bg-white/60">
+                Registration pricing will be announced soon.
+              </p>
+            ) : (
+              visiblePlans.map((plan, i) => (
+                <PricingCard key={plan.id} plan={plan} index={i} />
+              ))
+            )}
           </motion.div>
         </div>
+        )}
 
+        {workshopsSectionEnabled && (
         <div className="grid lg:grid-cols-[minmax(0,300px)_1fr] gap-8 lg:gap-12 items-start">
           <motion.div
             variants={fadeUp}
@@ -216,16 +234,23 @@ export default function RegisterPricing() {
             viewport={{ once: true, margin: "-60px" }}
             className="grid sm:grid-cols-2 gap-6"
           >
-            {workshops.map((workshop, i) => (
-              <WorkshopCard
-                key={workshop.id}
-                workshop={workshop}
-                index={i}
-                conference={conference}
-              />
-            ))}
+            {visibleWorkshops.length === 0 ? (
+              <p className="col-span-full text-sm text-text-secondary py-8 text-center rounded-2xl border border-dashed border-border bg-white/60">
+                Workshop registration will be announced soon.
+              </p>
+            ) : (
+              visibleWorkshops.map((workshop, i) => (
+                <WorkshopCard
+                  key={workshop.id}
+                  workshop={workshop}
+                  index={i}
+                  conference={conference}
+                />
+              ))
+            )}
           </motion.div>
         </div>
+        )}
       </Container>
     </section>
   );

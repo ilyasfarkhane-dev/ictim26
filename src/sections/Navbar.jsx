@@ -9,7 +9,7 @@ import { useConference } from "../hooks/useConference";
 import { useScrollPosition } from "../hooks/useScrollPosition";
 
 export default function Navbar() {
-  const { navLinks, conference, editionsDropdown } = useConference();
+  const { navLinks, editionsDropdown } = useConference();
   const scrolled = useScrollPosition(40);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileEditionsOpen, setMobileEditionsOpen] = useState(false);
@@ -178,13 +178,22 @@ export default function Navbar() {
             </ul>
 
             <div className="flex flex-col gap-2 px-4 pb-4 border-t border-border pt-4">
-              <a
-                href={`mailto:${conference.contact.emails[0]}`}
-                className="text-xs text-text-secondary text-center px-2"
+              <Button
+                variant="secondary"
+                size="sm"
+                href="#contact"
+                className="w-full"
+                onClick={closeMobile}
               >
-                {conference.contact.emails[0]}
-              </a>
-              <Button variant="primary" size="sm" href="#register-pricing" className="w-full" onClick={closeMobile}>
+                Contact
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                href="#register-pricing"
+                className="w-full"
+                onClick={closeMobile}
+              >
                 Registration
               </Button>
             </div>

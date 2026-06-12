@@ -4,6 +4,7 @@ import Container from "../components/Container";
 import SectionHeader from "../components/SectionHeader";
 import Button from "../components/Button";
 import { useConference } from "../hooks/useConference";
+import { getVisibleTopics } from "../lib/topics";
 import { fadeUp, staggerContainer } from "../utils/animations";
 
 function TopicCard({ topic, index }) {
@@ -40,6 +41,7 @@ function TopicCard({ topic, index }) {
 
 export default function EventCategories() {
   const { topics } = useConference();
+  const visibleTopics = getVisibleTopics(topics);
 
   return (
     <section id="topics" className="relative py-20 lg:py-28 overflow-hidden">
@@ -67,7 +69,7 @@ export default function EventCategories() {
           viewport={{ once: true, margin: "-60px" }}
           className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-4"
         >
-          {topics.map((topic, i) => (
+          {visibleTopics.map((topic, i) => (
             <TopicCard key={topic.id} topic={topic} index={i} />
           ))}
         </motion.div>

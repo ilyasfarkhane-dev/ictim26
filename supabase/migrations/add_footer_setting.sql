@@ -1,0 +1,9 @@
+-- Seed footer content for dashboard-managed site footer.
+-- Run in Supabase SQL Editor if footer is missing from site_settings.
+
+insert into public.site_settings (key, value) values
+  (
+    'footer',
+    '{"about":"","copyright":"","contactTitle":"Contact","contact":{"address":"Faculty of Sciences Ben M''Sik, University Hassan II, Casablanca, Morocco","phone":"+212 660-082091","emails":["tim24fsbm@gmail.com","omar.zahour@univh2c.ma"]},"columns":[{"id":"col-1","title":"Practical Links","enabled":true,"links":[{"id":"link-1-1","label":"Registration","href":"#register-pricing","enabled":true},{"id":"link-1-2","label":"Committee","href":"#committees","enabled":true},{"id":"link-1-3","label":"Topics","href":"#topics","enabled":true},{"id":"link-1-4","label":"Program","href":"#important-dates","enabled":true}]},{"id":"col-2","title":"Editions","enabled":true,"links":[{"id":"link-2-1","label":"TIM''14","href":"https://www.conference-tim.com/","enabled":true},{"id":"link-2-2","label":"TIM''15","href":"https://www.conference-tim.com/","enabled":true},{"id":"link-2-3","label":"TIM''16","href":"https://www.conference-tim.com/","enabled":true},{"id":"link-2-4","label":"TIM''22","href":"https://www.conference-tim.com/","enabled":true},{"id":"link-2-5","label":"ICTIM''24","href":"https://www.conference-tim.com/","enabled":true}]},{"id":"col-3","title":"Resources","enabled":true,"links":[{"id":"link-3-1","label":"IEEE Template","href":"https://www.springer.com/gp/computer-science/lncs/conference-proceedings-guidelines","enabled":true},{"id":"link-3-2","label":"Submission Guidelines","href":"#submission-guidelines","enabled":true},{"id":"link-3-3","label":"Official Website","href":"https://www.conference-tim.com/","enabled":true},{"id":"link-3-4","label":"TIM Laboratory","href":"#committees","enabled":true}]}]}'::jsonb
+  )
+on conflict (key) do update set value = excluded.value, updated_at = now();

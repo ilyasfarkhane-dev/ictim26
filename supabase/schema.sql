@@ -21,6 +21,7 @@ create table if not exists public.topics (
   id uuid primary key default gen_random_uuid(),
   sort_order integer not null default 0,
   name text not null,
+  enabled boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -34,6 +35,7 @@ create table if not exists public.important_dates (
   description text,
   icon text,
   image_url text,
+  enabled boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -52,6 +54,7 @@ create table if not exists public.workshops (
   price numeric,
   currency text default 'DH',
   image_url text,
+  enabled boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -61,6 +64,7 @@ create table if not exists public.sponsors (
   sort_order integer not null default 0,
   name text not null,
   logo_url text,
+  enabled boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

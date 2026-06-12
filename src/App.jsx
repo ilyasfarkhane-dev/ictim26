@@ -11,6 +11,8 @@ import TopicsPage from "./pages/dashboard/TopicsPage";
 import DatesPage from "./pages/dashboard/DatesPage";
 import WorkshopsPage from "./pages/dashboard/WorkshopsPage";
 import SponsorsPage from "./pages/dashboard/SponsorsPage";
+import CommitteesPage from "./pages/dashboard/CommitteesPage";
+import FooterPage from "./pages/dashboard/FooterPage";
 import SettingsPage from "./pages/dashboard/SettingsPage";
 import ContentPage from "./pages/dashboard/ContentPage";
 import MediaPage from "./pages/dashboard/MediaPage";
@@ -46,6 +48,8 @@ export default function App() {
           <Route path="dates" element={<DatesPage />} />
           <Route path="workshops" element={<WorkshopsPage />} />
           <Route path="sponsors" element={<SponsorsPage />} />
+          <Route path="committees" element={<CommitteesPage />} />
+          <Route path="footer" element={<FooterPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="content" element={<ContentPage />} />
           <Route path="media" element={<MediaPage />} />

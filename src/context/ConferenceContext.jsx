@@ -3,7 +3,16 @@ import * as defaults from "../data/defaults";
 import { fetchAllContent } from "../lib/contentApi";
 import { normalizeHeroImage, resolveHeroBackgroundPath } from "../lib/heroImages";
 import { normalizeHeroHighlights } from "../lib/heroHighlights";
+import { normalizeDates } from "../lib/dates";
 import { normalizeSpeakers } from "../lib/speakers";
+import { normalizeTopics } from "../lib/topics";
+import { normalizePartners } from "../lib/partners";
+import { normalizeSectionSettings } from "../lib/sectionSettings";
+import { normalizeCallForPapers } from "../lib/callForPapers";
+import { normalizeCommittees } from "../lib/committees";
+import { normalizeFooter } from "../lib/footer";
+import { normalizeRegistrationPricing } from "../lib/registrationPricing";
+import { normalizeWorkshops } from "../lib/workshops";
 import { isSupabaseConfigured } from "../lib/supabase";
 
 const ConferenceContext = createContext(null);
@@ -18,9 +27,10 @@ function buildState(remote, fallback) {
   const r = remote ?? {};
   const fromDb = Boolean(remote);
 
+  const conference = r.conference ?? fb.conference;
   const previousEditions = r.previousEditions ?? fb.previousEditions;
   return {
-    conference: r.conference ?? fb.conference,
+    conference,
     navLinks: r.navLinks ?? fb.navLinks,
     heroImages: (() => {
       const heroImage = normalizeHeroImage(r.heroImages ?? fb.heroImages);
@@ -31,11 +41,19 @@ function buildState(remote, fallback) {
     })(),
     heroHighlights: normalizeHeroHighlights(r.heroHighlights ?? fb.heroHighlights),
     submissionGuidelines: r.submissionGuidelines ?? fb.submissionGuidelines,
-    registrationPricing: r.registrationPricing ?? fb.registrationPricing,
-    workshops: dbList(r.workshops, fb.workshops, fromDb),
-    callForPapers: r.callForPapers ?? fb.callForPapers,
+    registrationPricing: normalizeRegistrationPricing(
+      r.registrationPricing ?? fb.registrationPricing,
+      fb.registrationPricing
+    ),
+    committees: normalizeCommittees(r.committees ?? fb.committees, fb.committees),
+    sectionSettings: normalizeSectionSettings(r.sectionSettings ?? fb.sectionSettings),
+    workshops: normalizeWorkshops(dbList(r.workshops, fb.workshops, fromDb)),
+    callForPapers: normalizeCallForPapers(
+      r.callForPapers ?? fb.callForPapers,
+      conference
+    ),
     quickLinks: dbList(r.quickLinks, fb.quickLinks, fromDb),
-    participationSteps: dbList(r.participationSteps, fb.participationSteps, fromDb),
+    participationSteps: normalizeDates(dbList(r.participationSteps, fb.participationSteps, fromDb)),
     previousEditions,
     editionsDropdown: {
       label: "Previous Editions",
@@ -45,10 +63,14 @@ function buildState(remote, fallback) {
         href: e.href,
       })),
     },
-    partners: dbList(r.partners, fb.partners, fromDb),
-    footerLinks: r.footerLinks ?? fb.footerLinks,
+    partners: normalizePartners(dbList(r.partners, fb.partners, fromDb)),
+    footer: normalizeFooter(
+      r.footer ?? (r.footerLinks ? { legacy: r.footerLinks } : null),
+      fb.footer,
+      conference
+    ),
     speakers: normalizeSpeakers(dbList(r.speakers, fb.speakers, fromDb)),
-    topics: dbList(r.topics, fb.topics, fromDb),
+    topics: normalizeTopics(dbList(r.topics, fb.topics, fromDb)),
     source: fromDb ? "supabase" : "local",
   };
 }

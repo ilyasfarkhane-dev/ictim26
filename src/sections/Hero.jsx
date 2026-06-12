@@ -33,10 +33,20 @@ export default function Hero() {
     >
       {/* Background photo */}
       <div
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 z-0 bg-cover bg-right md:bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${bgSrc})` }}
         role="img"
         aria-label={heroBackground.alt || DEFAULT_HERO_ALT}
+      />
+
+      {/* Gray overlay — flat on mobile, gradient on md+ for left-aligned copy */}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none bg-gray-900/55 md:hidden"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none hidden md:block bg-gradient-to-r from-gray-900/65 via-gray-900/45 to-gray-900/15"
+        aria-hidden="true"
       />
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-6 lg:pl-12 lg:pr-8 xl:pl-16 xl:pr-8 2xl:pl-20">

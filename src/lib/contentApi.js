@@ -67,16 +67,35 @@ const MAPPERS = {
   quick_links: mapQuickLink,
 };
 
-function dedupeMappedRows(rows, table) {
-  const config = TABLE_DEFAULTS[table];
-  if (!config) return rows;
+/** Stable ordering so duplicate seed rows always resolve to the same canonical id. */
+function sortRowsByOrderAndId(rows) {
+  return [...rows].sort((a, b) => {
+    const orderDiff = (a.sort_order ?? 0) - (b.sort_order ?? 0);
+    if (orderDiff !== 0) return orderDiff;
+    return String(a.id).localeCompare(String(b.id));
+  });
+}
 
-  const seen = new Map();
-  for (const row of rows) {
-    const key = config.matchKey(row);
-    if (!seen.has(key)) seen.set(key, row);
+function rowMatchKey(table, row) {
+  const config = TABLE_DEFAULTS[table];
+  if (!config) return String(row.id);
+  return config.matchKey(MAPPERS[table](row));
+}
+
+/** Keep one row per match key (title/name), prefer lowest sort_order then id. */
+function dedupeRawRows(rows, table) {
+  const config = TABLE_DEFAULTS[table];
+  if (!config) return rows ?? [];
+
+  const seen = new Set();
+  const unique = [];
+  for (const row of sortRowsByOrderAndId(rows ?? [])) {
+    const key = rowMatchKey(table, row);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(row);
   }
-  return [...seen.values()];
+  return unique;
 }
 
 async function fetchTable(table) {
@@ -86,7 +105,7 @@ async function fetchTable(table) {
     .select("*")
     .order("sort_order", { ascending: true });
   if (error) throw error;
-  return dedupeMappedRows((data ?? []).map(MAPPERS[table]), table);
+  return dedupeRawRows(data ?? [], table).map(MAPPERS[table]);
 }
 
 async function fetchSettings() {
@@ -98,10 +117,19 @@ async function fetchSettings() {
 
 const LIST_TABLES = Object.keys(TABLE_DEFAULTS);
 
-/** Write any missing default rows into Supabase (skips names/titles already stored). */
+/** Write default rows only when a list table is completely empty. */
 async function ensureListTablesSeeded() {
   if (!supabase) return;
-  await Promise.all(LIST_TABLES.map((table) => importDefaultsForTable(table)));
+
+  await Promise.all(
+    LIST_TABLES.map(async (table) => {
+      const { count, error } = await supabase
+        .from(table)
+        .select("*", { count: "exact", head: true });
+      if (error) throw error;
+      if ((count ?? 0) === 0) await importDefaultsForTable(table);
+    })
+  );
 }
 
 export async function fetchAllContent() {
@@ -131,9 +159,12 @@ export async function fetchAllContent() {
     callForPapers: settings.call_for_papers ?? null,
     submissionGuidelines: settings.submission_guidelines ?? null,
     registrationPricing: settings.registration_pricing ?? null,
+    committees: settings.committees ?? null,
+    sectionSettings: settings.section_settings ?? null,
     heroImages: settings.hero_images ?? null,
     heroHighlights: settings.hero_highlights ?? null,
     navLinks: settings.nav_links ?? null,
+    footer: settings.footer ?? null,
     footerLinks: settings.footer_links ?? null,
     previousEditions: settings.previous_editions ?? null,
   };
@@ -161,7 +192,7 @@ export async function importDefaultsForTable(table) {
   if (fetchError) throw fetchError;
 
   const existingKeys = new Set(
-    (existing ?? []).map((row) => config.matchKey(MAPPERS[table](row)))
+    dedupeRawRows(existing ?? [], table).map((row) => rowMatchKey(table, row))
   );
   const defaultItems = config.getItems();
 
@@ -176,12 +207,10 @@ export async function importDefaultsForTable(table) {
   if (insertError) throw insertError;
 }
 
-/** Map a local sample item (numeric id) to its Supabase UUID after defaults are synced. */
-export async function resolvePersistedId(table, localItem) {
+/** Look up a Supabase row id without inserting defaults. */
+export async function lookupPersistedId(table, localItem) {
   if (!supabase) throw new Error("Supabase is not configured");
   if (localItem?.id && isPersistedId(localItem.id)) return localItem.id;
-
-  await importDefaultsForTable(table);
 
   const config = TABLE_DEFAULTS[table];
   const { data, error } = await supabase
@@ -190,18 +219,28 @@ export async function resolvePersistedId(table, localItem) {
     .order("sort_order", { ascending: true });
   if (error) throw error;
 
+  const sorted = sortRowsByOrderAndId(data ?? []);
+
   if (typeof localItem?.id === "number") {
-    const byOrder = data?.find((row) => row.sort_order === localItem.id - 1);
+    const byOrder = sorted.find((row) => row.sort_order === localItem.id - 1);
     if (byOrder) return byOrder.id;
   }
 
-  if (config) {
+  if (config && localItem) {
     const key = config.matchKey(localItem);
-    const byKey = data?.find((row) => row.name === key || row.title === key);
+    const byKey = sorted.find((row) => row.name === key || row.title === key);
     if (byKey) return byKey.id;
   }
 
   return null;
+}
+
+/** Map a local sample item (numeric id) to its Supabase UUID after defaults are synced. */
+export async function resolvePersistedId(table, localItem) {
+  if (localItem?.id && isPersistedId(localItem.id)) return localItem.id;
+
+  await importDefaultsForTable(table);
+  return lookupPersistedId(table, localItem);
 }
 
 export async function createRow(table, row) {

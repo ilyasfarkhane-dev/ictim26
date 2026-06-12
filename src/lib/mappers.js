@@ -11,7 +11,11 @@ export function mapSpeaker(row) {
 }
 
 export function mapTopic(row) {
-  return { id: row.id, name: row.name };
+  return {
+    id: row.id,
+    name: row.name,
+    enabled: row.enabled !== false,
+  };
 }
 
 export function mapImportantDate(row) {
@@ -23,6 +27,7 @@ export function mapImportantDate(row) {
     description: row.description ?? "",
     icon: row.icon ?? "calendar",
     image: row.image_url ?? "",
+    enabled: row.enabled !== false,
   };
 }
 
@@ -42,6 +47,7 @@ export function mapWorkshop(row) {
     price: Number(row.price ?? 0),
     currency: row.currency ?? "DH",
     image: row.image_url ?? "",
+    enabled: row.enabled !== false,
   };
 }
 
@@ -50,6 +56,7 @@ export function mapSponsor(row) {
     id: row.id,
     name: row.name,
     logo: row.logo_url ?? "",
+    enabled: row.enabled !== false,
   };
 }
 
@@ -76,7 +83,11 @@ export function speakerToRow(speaker, sortOrder = 0) {
 }
 
 export function topicToRow(topic, sortOrder = 0) {
-  return { sort_order: sortOrder, name: topic.name };
+  return {
+    sort_order: sortOrder,
+    name: topic.name,
+    enabled: topic.enabled !== false,
+  };
 }
 
 export function dateToRow(item, sortOrder = 0) {
@@ -88,6 +99,7 @@ export function dateToRow(item, sortOrder = 0) {
     description: item.description,
     icon: item.icon,
     image_url: item.image,
+    enabled: item.enabled !== false,
   };
 }
 
@@ -105,6 +117,7 @@ export function workshopToRow(workshop, sortOrder = 0) {
     price: workshop.price,
     currency: workshop.currency,
     image_url: workshop.image,
+    enabled: workshop.enabled !== false,
   };
 }
 
@@ -113,6 +126,7 @@ export function sponsorToRow(sponsor, sortOrder = 0) {
     sort_order: sortOrder,
     name: sponsor.name,
     logo_url: sponsor.logo,
+    enabled: sponsor.enabled !== false,
   };
 }
 

@@ -11,6 +11,7 @@ import Container from "../components/Container";
 import SectionHeader from "../components/SectionHeader";
 import Button from "../components/Button";
 import { useConference } from "../hooks/useConference";
+import { getVisibleDates } from "../lib/dates";
 import { fadeUp, staggerContainer } from "../utils/animations";
 
 const iconMap = {
@@ -19,6 +20,14 @@ const iconMap = {
   check: HiOutlineCheckCircle,
   edit: HiOutlinePencilSquare,
   calendar: HiOutlineCalendarDays,
+};
+
+const DESKTOP_GRID_COLS = {
+  1: "grid-cols-1",
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+  4: "grid-cols-4",
+  5: "grid-cols-5",
 };
 
 function DateCard({ item, isLast, variant = "desktop" }) {
@@ -101,6 +110,11 @@ function DateCard({ item, isLast, variant = "desktop" }) {
 
 export default function ImportantDates() {
   const { participationSteps } = useConference();
+  const visibleSteps = getVisibleDates(participationSteps);
+
+  if (visibleSteps.length === 0) return null;
+
+  const desktopGridCols = DESKTOP_GRID_COLS[visibleSteps.length] ?? "grid-cols-1";
 
   return (
     <section
@@ -129,12 +143,12 @@ export default function ImportantDates() {
           viewport={{ once: true, margin: "-60px" }}
           className="hidden lg:block relative pt-8"
         >
-          <div className="grid grid-cols-5 gap-4">
-            {participationSteps.map((item, i) => (
+          <div className={`grid ${desktopGridCols} gap-4`}>
+            {visibleSteps.map((item, i) => (
               <motion.div key={item.id} variants={fadeUp} custom={i * 0.07}>
                 <DateCard
                   item={item}
-                  isLast={i === participationSteps.length - 1}
+                  isLast={i === visibleSteps.length - 1}
                   variant="desktop"
                 />
               </motion.div>
@@ -152,16 +166,16 @@ export default function ImportantDates() {
           <div className="absolute left-5 top-4 bottom-4 w-0.5 bg-gradient-to-b from-primary via-accent to-primary/30" />
 
           <div className="space-y-5 pl-12">
-            {participationSteps.map((item, i) => (
+            {visibleSteps.map((item, i) => (
               <motion.div key={item.id} variants={fadeUp} custom={i * 0.07} className="relative">
                 <div
                   className={`absolute -left-12 top-6 flex h-3 w-3 rounded-full border-2 border-white shadow-glow ${
-                    i === participationSteps.length - 1 ? "bg-primary" : "bg-accent"
+                    i === visibleSteps.length - 1 ? "bg-primary" : "bg-accent"
                   }`}
                 />
                 <DateCard
                   item={item}
-                  isLast={i === participationSteps.length - 1}
+                  isLast={i === visibleSteps.length - 1}
                   variant="mobile"
                 />
               </motion.div>

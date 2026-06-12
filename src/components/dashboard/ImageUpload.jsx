@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { HiOutlineCloudArrowUp, HiOutlineTrash } from "react-icons/hi2";
 import { uploadImage, isCloudinaryConfigured } from "../../lib/cloudinary";
 import { withBase } from "../../config/paths";
@@ -11,6 +11,12 @@ function resolvePreviewSrc(src) {
   return src;
 }
 
+function isImageFile(file) {
+  if (!file) return false;
+  if (file.type?.startsWith("image/")) return true;
+  return /\.(jpe?g|png|gif|webp|avif|bmp|svg|heic|heif)$/i.test(file.name ?? "");
+}
+
 export default function ImageUpload({
   label,
   value = "",
@@ -20,13 +26,22 @@ export default function ImageUpload({
   hint,
   required = false,
 }) {
+  const inputId = useId();
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
+  const canUpload = isCloudinaryConfigured && !uploading;
+
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!isImageFile(file)) {
+      setError("Please select an image file (JPG, PNG, WebP, etc.).");
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
 
     setUploading(true);
     setError("");
@@ -34,16 +49,18 @@ export default function ImageUpload({
       const { url } = await uploadImage(file, folder);
       onChange(url);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Image upload failed. Try again.");
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
     }
   };
 
-  const openPicker = () => {
-    if (!uploading && isCloudinaryConfigured) inputRef.current?.click();
-  };
+  const dropzoneClass = `flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-dash-muted transition-colors duration-200 ${
+    canUpload
+      ? "border-dash-border bg-dash-bg/50 hover:border-dash-primary hover:bg-blue-50/50 hover:text-dash-primary cursor-pointer"
+      : "border-dash-border/60 bg-dash-bg/30 opacity-60 cursor-not-allowed"
+  }`;
 
   return (
     <div className="space-y-3">
@@ -55,13 +72,14 @@ export default function ImageUpload({
       )}
 
       <input
+        id={inputId}
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         className="sr-only"
         onChange={handleFile}
-        disabled={uploading || !isCloudinaryConfigured}
-        required={required && !value}
+        disabled={!canUpload}
+        tabIndex={-1}
       />
 
       {value ? (
@@ -82,18 +100,13 @@ export default function ImageUpload({
           </button>
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={openPicker}
-          disabled={uploading || !isCloudinaryConfigured}
-          className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-dash-border bg-dash-bg/50 px-4 py-8 text-dash-muted hover:border-dash-primary hover:bg-blue-50/50 hover:text-dash-primary transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed dash-focus-ring"
-        >
+        <label htmlFor={canUpload ? inputId : undefined} className={dropzoneClass}>
           <HiOutlineCloudArrowUp className="w-8 h-8" />
           <span className="text-sm font-medium">
             {uploading ? "Uploading…" : "Choose image file"}
           </span>
           <span className="text-xs">PNG, JPG, WebP · max 10 MB</span>
-        </button>
+        </label>
       )}
 
       {value && isCloudinaryConfigured && (
@@ -101,8 +114,8 @@ export default function ImageUpload({
           type="button"
           variant="secondary"
           size="sm"
-          onClick={openPicker}
-          disabled={uploading}
+          disabled={!canUpload}
+          onClick={() => inputRef.current?.click()}
         >
           {uploading ? "Uploading…" : "Replace image"}
         </DashButton>
@@ -113,12 +126,15 @@ export default function ImageUpload({
           Cloudinary upload is disabled. Add{" "}
           <code className="text-dash-primary">VITE_CLOUDINARY_CLOUD_NAME</code> and{" "}
           <code className="text-dash-primary">VITE_CLOUDINARY_UPLOAD_PRESET</code> to{" "}
-          <code className="text-dash-primary">.env</code> and restart the dev server.
+          <code className="text-dash-primary">.env</code>, then restart the dev server.
         </p>
       )}
 
       {hint && <p className="text-xs text-dash-muted">{hint}</p>}
       {error && <p className="text-xs text-red-600">{error}</p>}
+      {required && !value && (
+        <p className="text-xs text-dash-muted">A photo is required before saving.</p>
+      )}
     </div>
   );
 }
