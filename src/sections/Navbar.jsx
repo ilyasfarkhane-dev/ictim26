@@ -19,11 +19,10 @@ export default function Navbar() {
     setMobileEditionsOpen(false);
   };
 
-  const linkClass = scrolled
-    ? "relative px-4 py-2 text-sm font-medium text-text-secondary hover:text-navy transition-colors duration-200 cursor-pointer group"
-    : "relative px-4 py-2 text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 cursor-pointer group [text-shadow:0_1px_4px_rgba(0,0,0,0.35)]";
+  const linkClass =
+    "relative px-4 py-2 text-sm font-medium text-blue-800 hover:text-blue-900 transition-colors duration-200 cursor-pointer group";
 
-  const linkUnderlineClass = scrolled ? "bg-primary" : "bg-white";
+  const linkUnderlineClass = "bg-blue-800";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 pt-4 sm:px-6">
@@ -31,8 +30,8 @@ export default function Navbar() {
         <nav
           className={`flex items-center justify-between rounded-2xl px-5 py-3 transition-all duration-500 ${
             scrolled
-              ? "glass shadow-premium border border-white/60"
-              : "bg-transparent"
+              ? "bg-white shadow-premium"
+              : "border-0 bg-transparent shadow-none"
           }`}
         >
           <Logo />
@@ -54,7 +53,6 @@ export default function Navbar() {
               <NavDropdown
                 label={editionsDropdown.label}
                 items={editionsDropdown.items}
-                light={!scrolled}
               />
             )}
 
@@ -106,7 +104,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
-            className="lg:hidden mt-2 mx-4 glass rounded-2xl shadow-premium overflow-hidden"
+            className="lg:hidden mt-2 mx-4 rounded-2xl border border-slate-200/90 bg-white shadow-premium overflow-hidden"
           >
             <ul className="py-2">
               {navLinks.slice(0, 4).map((link) => (
@@ -114,7 +112,7 @@ export default function Navbar() {
                   <a
                     href={link.href}
                     onClick={closeMobile}
-                    className="block px-6 py-3 text-sm font-medium text-navy hover:bg-light-blue/40 transition-colors cursor-pointer"
+                    className="block px-6 py-3 text-sm font-medium text-blue-800 hover:text-blue-900 hover:bg-light-blue/40 transition-colors cursor-pointer"
                   >
                     {link.label}
                   </a>
@@ -127,7 +125,7 @@ export default function Navbar() {
                     type="button"
                     onClick={() => setMobileEditionsOpen((prev) => !prev)}
                     aria-expanded={mobileEditionsOpen}
-                    className="flex w-full items-center justify-between px-6 py-3 text-sm font-medium text-navy hover:bg-light-blue/40 transition-colors cursor-pointer"
+                    className="flex w-full items-center justify-between px-6 py-3 text-sm font-medium text-blue-800 hover:text-blue-900 hover:bg-light-blue/40 transition-colors cursor-pointer"
                   >
                     {editionsDropdown.label}
                     <HiOutlineChevronDown
@@ -151,7 +149,7 @@ export default function Navbar() {
                               target={item.href.startsWith("http") ? "_blank" : undefined}
                               rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
                               onClick={closeMobile}
-                              className="flex flex-col px-8 py-2.5 text-sm text-navy hover:bg-light-blue/40 transition-colors cursor-pointer"
+                              className="flex flex-col px-8 py-2.5 text-sm text-blue-800 hover:text-blue-900 hover:bg-light-blue/40 transition-colors cursor-pointer"
                             >
                               <span className="font-semibold">{item.label}</span>
                               {item.subtitle && (
@@ -173,7 +171,7 @@ export default function Navbar() {
                   <a
                     href={link.href}
                     onClick={closeMobile}
-                    className="block px-6 py-3 text-sm font-medium text-navy hover:bg-light-blue/40 transition-colors cursor-pointer"
+                    className="block px-6 py-3 text-sm font-medium text-blue-800 hover:text-blue-900 hover:bg-light-blue/40 transition-colors cursor-pointer"
                   >
                     {link.label}
                   </a>

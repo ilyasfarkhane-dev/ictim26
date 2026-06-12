@@ -10,7 +10,7 @@ export const conference = {
   location: "Faculty of Sciences Ben M'Sik, Hassan II University",
   city: "Casablanca, Morocco",
   venue: "Faculty of Sciences Ben M'Sik | Casablanca - Morocco",
-  dates: "November 26 – 27, 2026",
+  dates: "November 26 – 28, 2026",
   publication:
     "Proceedings published in Springer's CCIS series. Extended versions of selected papers submitted to Scopus-indexed journals.",
   templateNote:
@@ -37,15 +37,15 @@ export const navLinks = [
 ];
 
 export const heroImages = {
-  src: "/assets/hr_bg.jpeg",
+  src: "",
   alt: "ICTIM conference venue — information technology and modeling",
 };
 
 export const heroHighlights = [
-  { value: "Springer", label: "CCIS Proceedings", enabled: true },
   { value: "Scopus", label: "Indexed Journals", enabled: true },
   { value: "10+", label: "Research Topics", enabled: true },
   { value: "6+", label: "Keynote Speakers", enabled: true },
+  { value: "8th", label: "Edition", enabled: true },
 ];
 
 export const submissionGuidelines = {
@@ -322,7 +322,7 @@ export const participationSteps = [
     id: 5,
     step: "05",
     title: "Date of the Conference",
-    date: "November 26 – 27, 2026",
+    date: "November 26 – 28, 2026",
     description:
       "Join us at the Faculty of Sciences Ben M'Sik in Casablanca for two days of keynotes, sessions, and networking.",
     icon: "calendar",

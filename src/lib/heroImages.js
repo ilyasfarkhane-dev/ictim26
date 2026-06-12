@@ -12,21 +12,17 @@ export function normalizeHeroImage(heroImages) {
   return { src: "", alt: "" };
 }
 
-export const DEFAULT_HERO_IMAGE = "/assets/hr_bg.jpeg";
-
 const LEGACY_HERO_FOREGROUND = "/assets/hero.png";
 
 export const DEFAULT_HERO_ALT =
   "ICTIM conference venue — information technology and modeling";
 
-/** Pick the hero background path (local asset or external URL). */
+/** Pick the hero background path (local asset or external URL). No default image. */
 export function resolveHeroBackgroundPath(src) {
-  let path = src || DEFAULT_HERO_IMAGE;
-  if (
-    path === LEGACY_HERO_FOREGROUND ||
-    path.endsWith("/assets/hero.png")
-  ) {
-    path = DEFAULT_HERO_IMAGE;
+  const path = String(src ?? "").trim();
+  if (!path) return "";
+  if (path === LEGACY_HERO_FOREGROUND || path.endsWith("/assets/hero.png")) {
+    return "";
   }
   return path;
 }
@@ -34,6 +30,7 @@ export function resolveHeroBackgroundPath(src) {
 /** Resolve local public paths with the Vite base URL; pass through external URLs. */
 export function resolveHeroSrc(src) {
   const path = resolveHeroBackgroundPath(src);
+  if (!path) return "";
   if (path.startsWith("/")) return withBase(path);
   return path;
 }

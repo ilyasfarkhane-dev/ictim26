@@ -582,9 +582,21 @@ function PricingPlanCard({
   );
 }
 
+function getEditablePricingPlans(form) {
+  const source =
+    Array.isArray(form.plans) && form.plans.length > 0
+      ? form.plans
+      : normalizeRegistrationPricing(form).plans;
+
+  return source.map((plan) => ({
+    ...plan,
+    features: ensureList(plan.features),
+  }));
+}
+
 function RegistrationPricingEditor({ form, setForm }) {
   const [expanded, setExpanded] = useState(() => new Set([0]));
-  const plans = normalizeRegistrationPricing(form).plans;
+  const plans = getEditablePricingPlans(form);
 
   const togglePlan = (index) => {
     setExpanded((prev) => {

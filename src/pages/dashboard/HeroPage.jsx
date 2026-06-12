@@ -5,6 +5,9 @@ import {
   HiOutlineDocumentText,
   HiOutlineCursorArrowRays,
   HiOutlineArrowTopRightOnSquare,
+  HiOutlineBuildingOffice2,
+  HiOutlinePlus,
+  HiOutlineTrash,
 } from "react-icons/hi2";
 import DashToggle from "../../components/dashboard/DashToggle";
 import StatusBanner from "../../components/dashboard/StatusBanner";
@@ -24,11 +27,18 @@ import {
   hydrateHeroContentForEdit,
   prepareHeroContentForSave,
 } from "../../lib/heroContent";
+import {
+  emptyHeroSponsor,
+  hydrateHeroSponsorsForEdit,
+  isSponsorEnabled,
+  prepareHeroSponsorsForSave,
+} from "../../lib/heroSponsors";
 
-function buildFormState(heroImages, heroHighlights, heroContent, conference) {
+function buildFormState(heroImages, heroHighlights, heroSponsors, heroContent, conference) {
   return {
     image: normalizeHeroImage(heroImages),
     highlights: normalizeHeroHighlights(heroHighlights),
+    sponsors: hydrateHeroSponsorsForEdit(heroSponsors),
     content: hydrateHeroContentForEdit(heroContent, conference),
   };
 }
@@ -103,26 +113,35 @@ function CtaEditor({ cta, index, onUpdate }) {
 }
 
 export default function HeroPage() {
-  const { conference, heroImages, heroHighlights, heroContent, refresh } = useConference();
+  const { conference, heroImages, heroHighlights, heroSponsors, heroContent, refresh } =
+    useConference();
   const [savedSnapshot, setSavedSnapshot] = useState(() =>
-    buildFormState(heroImages, heroHighlights, heroContent, conference)
+    buildFormState(heroImages, heroHighlights, heroSponsors, heroContent, conference)
   );
   const [form, setForm] = useState(() =>
-    buildFormState(heroImages, heroHighlights, heroContent, conference)
+    buildFormState(heroImages, heroHighlights, heroSponsors, heroContent, conference)
   );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const next = buildFormState(heroImages, heroHighlights, heroContent, conference);
+    const next = buildFormState(heroImages, heroHighlights, heroSponsors, heroContent, conference);
     setForm(next);
     setSavedSnapshot(next);
-  }, [heroImages, heroHighlights, heroContent, conference]);
+  }, [heroImages, heroHighlights, heroSponsors, heroContent, conference]);
 
   const isDirty = useMemo(
     () => JSON.stringify(form) !== JSON.stringify(savedSnapshot),
     [form, savedSnapshot]
   );
+
+  const updateSponsor = (index, field, value) => {
+    setForm((f) => ({
+      ...f,
+      sponsors: f.sponsors.map((s, i) => (i === index ? { ...s, [field]: value } : s)),
+    }));
+    setMessage("");
+  };
 
   const updateHighlight = (index, field, value) => {
     setForm((f) => ({
@@ -161,6 +180,7 @@ export default function HeroPage() {
       await Promise.all([
         upsertSetting("hero_images", form.image),
         upsertSetting("hero_highlights", form.highlights),
+        upsertSetting("hero_sponsors", prepareHeroSponsorsForSave(form.sponsors)),
         upsertSetting("hero_content", prepareHeroContentForSave(form.content)),
       ]);
       await refresh();
@@ -296,7 +316,7 @@ export default function HeroPage() {
           <SectionHeader
             icon={HiOutlinePhoto}
             title="Hero background"
-            description="Full-width background behind the homepage hero text. Default: public/assets/hr_bg.jpeg."
+            description="Full-width background behind the homepage hero text. Upload an image to display it on the homepage."
           />
 
           <div className="space-y-4 max-w-xl">
@@ -317,9 +337,106 @@ export default function HeroPage() {
 
         <section className="dash-card p-6 space-y-6">
           <SectionHeader
+            icon={HiOutlineBuildingOffice2}
+            title="Publisher strip"
+            description="Publisher logos only — shown in the white bar between event details and stat cards."
+          />
+
+          <div className="flex justify-end">
+            <DashButton
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setForm((f) => ({
+                  ...f,
+                  sponsors: [...f.sponsors, emptyHeroSponsor(f.sponsors.length)],
+                }));
+                setMessage("");
+              }}
+            >
+              <HiOutlinePlus className="w-4 h-4" />
+              Add publisher
+            </DashButton>
+          </div>
+
+          <div className="space-y-4">
+            {form.sponsors.map((sponsor, i) => {
+              const enabled = isSponsorEnabled(sponsor);
+              const toggleId = `hero-sponsor-toggle-${i}`;
+
+              return (
+                <div
+                  key={sponsor.id}
+                  className={`rounded-xl border p-4 space-y-4 transition-colors duration-200 ${
+                    enabled
+                      ? "border-dash-border bg-white hover:border-dash-primary/20"
+                      : "border-dash-border/80 bg-dash-bg/40 opacity-75"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <DashToggle
+                        id={toggleId}
+                        enabled={enabled}
+                        onChange={(next) => updateSponsor(i, "enabled", next)}
+                        ariaLabel={enabled ? "Publisher visible on homepage" : "Publisher hidden"}
+                      />
+                      <div>
+                        <label
+                          htmlFor={toggleId}
+                          className="text-xs font-semibold uppercase tracking-wider text-dash-text cursor-pointer"
+                        >
+                          Publisher {i + 1}
+                        </label>
+                        <p className="text-[11px] text-dash-muted mt-0.5">
+                          {enabled ? "Visible in hero strip" : "Hidden on homepage"}
+                        </p>
+                      </div>
+                    </div>
+                    {form.sponsors.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForm((f) => ({
+                            ...f,
+                            sponsors: f.sponsors.filter((_, idx) => idx !== i),
+                          }));
+                          setMessage("");
+                        }}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-red-600 hover:text-red-700 cursor-pointer dash-focus-ring"
+                      >
+                        <HiOutlineTrash className="w-3.5 h-3.5" />
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  <ImageUpload
+                    label="Logo"
+                    value={sponsor.logoUrl}
+                    onChange={(url) => updateSponsor(i, "logoUrl", url)}
+                    folder={CLOUDINARY_FOLDERS.sponsors}
+                    previewClassName="h-10 w-auto max-w-[8rem] object-contain rounded bg-dash-bg/30 p-2"
+                    hint="PNG or SVG with transparent background recommended."
+                  />
+                  <DashInput
+                    label="Alt text (accessibility)"
+                    value={sponsor.name}
+                    onChange={(e) => updateSponsor(i, "name", e.target.value)}
+                    placeholder="Springer"
+                    disabled={!enabled}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="dash-card p-6 space-y-6">
+          <SectionHeader
             icon={HiOutlineChartBar}
             title="Highlight stats"
-            description="Up to four stat cards below the hero text. Toggle off any stat to hide it on the homepage."
+            description="Up to four stat cards below the publisher strip. Toggle off any stat to hide it on the homepage."
           />
 
           <div className="grid sm:grid-cols-2 gap-4">

@@ -3,6 +3,7 @@ import * as defaults from "../data/defaults";
 import { fetchAllContent } from "../lib/contentApi";
 import { normalizeHeroImage, resolveHeroBackgroundPath } from "../lib/heroImages";
 import { normalizeHeroHighlights } from "../lib/heroHighlights";
+import { normalizeHeroSponsors } from "../lib/heroSponsors";
 import { normalizeHeroContent } from "../lib/heroContent";
 import { normalizeDates } from "../lib/dates";
 import { normalizeSpeakers } from "../lib/speakers";
@@ -22,6 +23,13 @@ const ConferenceContext = createContext(null);
 /** List fields come from Supabase only when connected; static files are dev fallback. */
 function dbList(remoteValue, fallbackValue, fromDb) {
   return fromDb ? (remoteValue ?? []) : (fallbackValue ?? []);
+}
+
+/** Use local defaults when Supabase is connected but the table has not been seeded yet. */
+function dbListWithFallback(remoteValue, fallbackValue, fromDb) {
+  if (!fromDb) return fallbackValue ?? [];
+  if (Array.isArray(remoteValue) && remoteValue.length > 0) return remoteValue;
+  return fallbackValue ?? [];
 }
 
 function buildState(remote, fallback) {
@@ -45,6 +53,7 @@ function buildState(remote, fallback) {
       };
     })(),
     heroHighlights: normalizeHeroHighlights(r.heroHighlights ?? fb.heroHighlights),
+    heroSponsors: normalizeHeroSponsors(r.heroSponsors ?? fb.heroSponsors, fb.heroSponsors),
     heroContent: normalizeHeroContent(
       r.heroContent ?? fb.heroContent,
       conference,
@@ -72,7 +81,7 @@ function buildState(remote, fallback) {
       fb.footer,
       conference
     ),
-    speakers: normalizeSpeakers(dbList(r.speakers, fb.speakers, fromDb)),
+    speakers: normalizeSpeakers(dbListWithFallback(r.speakers, fb.speakers, fromDb)),
     topics: normalizeTopics(dbList(r.topics, fb.topics, fromDb)),
     source: fromDb ? "supabase" : "local",
   };

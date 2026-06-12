@@ -22,12 +22,58 @@ function normalizeMemberList(list, prefix) {
   return list.map((item, i) => normalizeMember(item, i, prefix)).filter(Boolean);
 }
 
-function normalizeInstitution(raw, fallback) {
-  const fb = fallback ?? defaultCommittees.organizing?.institution ?? {};
-  const src = raw && typeof raw === "object" ? raw : {};
+function dedupeMembersByName(list) {
+  const seen = new Set();
+  const unique = [];
+  for (const item of list ?? []) {
+    const key = String(item?.name ?? "")
+      .trim()
+      .toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(item);
+  }
+  return unique;
+}
+
+function hasNewCommitteeShape(data) {
+  return Boolean(
+    data &&
+      typeof data === "object" &&
+      (Array.isArray(data.organizingSenior) ||
+        Array.isArray(data.organizingJuniors) ||
+        Array.isArray(data.scientific))
+  );
+}
+
+/** Map legacy programChairs / externalReviewers / organizing keys to the new structure. */
+function migrateLegacyCommittees(data, fallback) {
+  const fb = fallback ?? defaultCommittees;
+
+  const organizingSenior = normalizeMemberList(
+    data.organizing?.programChairs?.length
+      ? data.organizing.programChairs
+      : data.programChairs?.length
+        ? data.programChairs
+        : fb.organizingSenior,
+    "org-sr"
+  );
+
+  const scientificSource = dedupeMembersByName([
+    ...(data.programChairs ?? []),
+    ...(data.externalReviewers ?? []),
+    ...(data.scientific ?? []),
+  ]);
+
   return {
-    name: String(src.name ?? fb.name ?? "").trim(),
-    address: String(src.address ?? fb.address ?? "").trim(),
+    organizingSenior: organizingSenior.length ? organizingSenior : normalizeMemberList(fb.organizingSenior, "org-sr"),
+    organizingJuniors: normalizeMemberList(
+      data.organizingJuniors?.length ? data.organizingJuniors : fb.organizingJuniors,
+      "org-jr"
+    ),
+    scientific: scientificSource.length
+      ? normalizeMemberList(scientificSource, "sci")
+      : normalizeMemberList(fb.scientific, "sci"),
   };
 }
 
@@ -36,33 +82,29 @@ export function normalizeCommittees(data, fallback) {
 
   if (!data || typeof data !== "object") {
     return {
-      programChairs: normalizeMemberList(fb.programChairs, "pch"),
-      externalReviewers: normalizeMemberList(fb.externalReviewers, "er"),
-      organizing: {
-        programChairs: normalizeMemberList(fb.organizing?.programChairs, "org-pc"),
-        institution: normalizeInstitution(fb.organizing?.institution, fb.organizing?.institution),
-      },
+      organizingSenior: normalizeMemberList(fb.organizingSenior, "org-sr"),
+      organizingJuniors: normalizeMemberList(fb.organizingJuniors, "org-jr"),
+      scientific: normalizeMemberList(fb.scientific, "sci"),
     };
   }
 
+  if (!hasNewCommitteeShape(data)) {
+    return migrateLegacyCommittees(data, fb);
+  }
+
   return {
-    programChairs: normalizeMemberList(
-      data.programChairs?.length ? data.programChairs : fb.programChairs,
-      "pch"
+    organizingSenior: normalizeMemberList(
+      data.organizingSenior?.length ? data.organizingSenior : fb.organizingSenior,
+      "org-sr"
     ),
-    externalReviewers: normalizeMemberList(
-      data.externalReviewers?.length ? data.externalReviewers : fb.externalReviewers,
-      "er"
+    organizingJuniors: normalizeMemberList(
+      data.organizingJuniors?.length ? data.organizingJuniors : fb.organizingJuniors,
+      "org-jr"
     ),
-    organizing: {
-      programChairs: normalizeMemberList(
-        data.organizing?.programChairs?.length
-          ? data.organizing.programChairs
-          : fb.organizing?.programChairs,
-        "org-pc"
-      ),
-      institution: normalizeInstitution(data.organizing?.institution, fb.organizing?.institution),
-    },
+    scientific: normalizeMemberList(
+      data.scientific?.length ? data.scientific : fb.scientific,
+      "sci"
+    ),
   };
 }
 
@@ -82,7 +124,7 @@ export function emptyMember(prefix = "member") {
 
 export function prepareCommitteesForSave(form) {
   const normalized = normalizeCommittees(form);
-  const stripEmail = (members) =>
+  const stripMember = (members) =>
     members.map(({ id, name, affiliation, email, enabled }) => ({
       id,
       name,
@@ -92,30 +134,18 @@ export function prepareCommitteesForSave(form) {
     }));
 
   return {
-    programChairs: stripEmail(normalized.programChairs),
-    externalReviewers: stripEmail(normalized.externalReviewers),
-    organizing: {
-      programChairs: stripEmail(normalized.organizing.programChairs),
-      institution: normalized.organizing.institution,
-    },
+    organizingSenior: stripMember(normalized.organizingSenior),
+    organizingJuniors: stripMember(normalized.organizingJuniors),
+    scientific: stripMember(normalized.scientific),
   };
 }
 
 export function hydrateCommitteesForEdit(raw) {
   const data = normalizeCommittees(raw);
   return {
-    programChairs: data.programChairs.length
-      ? data.programChairs
-      : [emptyMember("pch")],
-    externalReviewers: data.externalReviewers.length
-      ? data.externalReviewers
-      : [emptyMember("er")],
-    organizing: {
-      programChairs: data.organizing.programChairs.length
-        ? data.organizing.programChairs
-        : [emptyMember("org-pc")],
-      institution: { ...data.organizing.institution },
-    },
+    organizingSenior: data.organizingSenior,
+    organizingJuniors: data.organizingJuniors,
+    scientific: data.scientific,
   };
 }
 

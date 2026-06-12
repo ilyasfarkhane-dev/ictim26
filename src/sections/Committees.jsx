@@ -3,8 +3,8 @@ import {
   HiOutlineUserGroup,
   HiOutlineGlobeAlt,
   HiOutlineUser,
-  HiOutlineBuildingOffice2,
   HiOutlineEnvelope,
+  HiOutlineAcademicCap,
 } from "react-icons/hi2";
 import Container from "../components/Container";
 import { useConference } from "../hooks/useConference";
@@ -31,6 +31,8 @@ function MemberAvatar({ name, size = "md" }) {
 }
 
 function Affiliation({ text }) {
+  if (!text?.trim()) return null;
+
   return (
     <p className="mt-2 flex items-start gap-2 text-sm text-text-secondary leading-relaxed">
       <HiOutlineGlobeAlt className="w-4 h-4 shrink-0 text-primary mt-0.5" aria-hidden="true" />
@@ -45,7 +47,7 @@ function SectionEyebrow({ children }) {
   );
 }
 
-function ChairCard({ member, index }) {
+function MemberCard({ member, index, showEmail = false }) {
   return (
     <motion.article
       variants={fadeUp}
@@ -57,13 +59,22 @@ function ChairCard({ member, index }) {
         <div className="min-w-0">
           <h4 className="text-base font-bold text-navy leading-snug">{member.name}</h4>
           <Affiliation text={member.affiliation} />
+          {showEmail && member.email?.trim() && (
+            <a
+              href={`mailto:${member.email}`}
+              className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-secondary transition-colors duration-200 cursor-pointer"
+            >
+              <HiOutlineEnvelope className="w-4 h-4 shrink-0" aria-hidden="true" />
+              {member.email}
+            </a>
+          )}
         </div>
       </div>
     </motion.article>
   );
 }
 
-function ReviewerItem({ member, index }) {
+function CompactMemberItem({ member, index }) {
   return (
     <motion.div
       variants={fadeUp}
@@ -79,38 +90,11 @@ function ReviewerItem({ member, index }) {
   );
 }
 
-function OrganizingCard({ role, icon: Icon, title, affiliation, email }) {
-  return (
-    <motion.article
-      variants={fadeUp}
-      className="flex flex-col rounded-2xl bg-white border border-border p-6 sm:p-7 shadow-sm hover:border-primary/20 transition-colors duration-200"
-    >
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-light-blue text-primary">
-        <Icon className="w-5 h-5" aria-hidden="true" />
-      </div>
-      <p className="mt-5 text-[10px] font-bold uppercase tracking-wider text-primary">{role}</p>
-      <h4 className="mt-2 text-lg font-bold text-navy leading-snug">{title}</h4>
-      {affiliation && <Affiliation text={affiliation} />}
-      {email && (
-        <a
-          href={`mailto:${email}`}
-          className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-secondary transition-colors duration-200 cursor-pointer"
-        >
-          <HiOutlineEnvelope className="w-4 h-4 shrink-0" aria-hidden="true" />
-          {email}
-        </a>
-      )}
-    </motion.article>
-  );
-}
-
 function BlockDivider({ children, className = "" }) {
-  return (
-    <div className={`border-t-4 border-primary pt-12 lg:pt-14 ${className}`}>{children}</div>
-  );
+  return <div className={className}>{children}</div>;
 }
 
-function SidebarTitle({ icon: Icon, eyebrow, title }) {
+function SidebarTitle({ icon: Icon, title }) {
   return (
     <div className="lg:sticky lg:top-28">
       {Icon && (
@@ -118,10 +102,70 @@ function SidebarTitle({ icon: Icon, eyebrow, title }) {
           <Icon className="w-6 h-6" aria-hidden="true" />
         </div>
       )}
-      {eyebrow && <div className="mt-6">{eyebrow}</div>}
+      <div className="mt-6">
+        <SectionEyebrow>Committees</SectionEyebrow>
+      </div>
       <h3 className="mt-3 text-2xl sm:text-3xl font-bold text-navy leading-tight">{title}</h3>
       <div className="mt-5 h-1 w-12 rounded-full bg-primary" />
     </div>
+  );
+}
+
+function CommitteeBlock({
+  icon,
+  title,
+  members,
+  layout = "grid",
+  showEmail = false,
+  isFirst = false,
+  emptyMessage = "Members will be announced soon.",
+}) {
+  return (
+    <BlockDivider
+      className={
+        isFirst ? "border-t-0 pt-0" : "mt-16 lg:mt-20 border-t-4 border-primary pt-12 lg:pt-14"
+      }
+    >
+      <div className="grid lg:grid-cols-[minmax(0,280px)_1fr] gap-8 lg:gap-12 items-start">
+        <SidebarTitle icon={icon} title={title} />
+        {members.length === 0 ? (
+          <motion.p
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            className="rounded-2xl border border-dashed border-border bg-section px-6 py-8 text-sm text-text-secondary leading-relaxed"
+          >
+            {emptyMessage}
+          </motion.p>
+        ) : (
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+            className={
+              layout === "compact"
+                ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 lg:gap-y-8"
+                : "grid sm:grid-cols-2 gap-4 lg:gap-5"
+            }
+          >
+            {members.map((member, i) =>
+              layout === "compact" ? (
+                <CompactMemberItem key={member.id} member={member} index={i} />
+              ) : (
+                <MemberCard
+                  key={member.id}
+                  member={member}
+                  index={i}
+                  showEmail={showEmail}
+                />
+              )
+            )}
+          </motion.div>
+        )}
+      </div>
+    </BlockDivider>
   );
 }
 
@@ -130,12 +174,38 @@ export default function Committees() {
 
   if (!isCommitteesSectionEnabled(sectionSettings)) return null;
 
-  const programChairs = getVisibleMembers(committees.programChairs);
-  const externalReviewers = getVisibleMembers(committees.externalReviewers);
-  const organizing = {
-    programChairs: getVisibleMembers(committees.organizing?.programChairs),
-    institution: committees.organizing?.institution ?? { name: "", address: "" },
-  };
+  const organizingSenior = getVisibleMembers(committees.organizingSenior);
+  const organizingJuniors = getVisibleMembers(committees.organizingJuniors);
+  const scientific = getVisibleMembers(committees.scientific);
+
+  const hasAnyMembers =
+    organizingSenior.length > 0 || organizingJuniors.length > 0 || scientific.length > 0;
+
+  if (!hasAnyMembers) return null;
+
+  const committeeSections = [
+    {
+      key: "organizingSenior",
+      icon: HiOutlineUser,
+      title: "Organizing Local Committee (Senior)",
+      members: organizingSenior,
+      showEmail: true,
+    },
+    {
+      key: "organizingJuniors",
+      icon: HiOutlineUserGroup,
+      title: "Organizing Local Committee (Juniors)",
+      members: organizingJuniors,
+      layout: "compact",
+    },
+    {
+      key: "scientific",
+      icon: HiOutlineAcademicCap,
+      title: "Scientific Committee",
+      members: scientific,
+      layout: "compact",
+    },
+  ];
 
   return (
     <section id="committees" className="py-20 lg:py-28 bg-white">
@@ -156,92 +226,17 @@ export default function Committees() {
           </p>
         </motion.div>
 
-        <BlockDivider>
-          <div className="grid lg:grid-cols-[minmax(0,280px)_1fr] gap-8 lg:gap-12 items-start">
-            <SidebarTitle
-              icon={HiOutlineUserGroup}
-              title="Program Committee Chairs"
-            />
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-60px" }}
-              className="grid sm:grid-cols-2 gap-4 lg:gap-5"
-            >
-              {programChairs.map((member, i) => (
-                <ChairCard key={member.id} member={member} index={i} />
-              ))}
-            </motion.div>
-          </div>
-        </BlockDivider>
-
-        <BlockDivider className="mt-16 lg:mt-20">
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-60px" }}
-            className="text-center max-w-2xl mx-auto mb-10 lg:mb-12"
-          >
-            <div className="flex justify-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-light-blue text-primary">
-                <HiOutlineUserGroup className="w-6 h-6" aria-hidden="true" />
-              </div>
-            </div>
-            <div className="mt-6">
-              <SectionEyebrow>Committees</SectionEyebrow>
-            </div>
-            <h3 className="mt-3 text-2xl sm:text-3xl font-bold text-navy">
-              External Reviewers &amp; Advisors
-            </h3>
-          </motion.div>
-
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-60px" }}
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 lg:gap-y-8"
-          >
-            {externalReviewers.map((member, i) => (
-              <ReviewerItem key={member.id} member={member} index={i} />
-            ))}
-          </motion.div>
-        </BlockDivider>
-
-        <BlockDivider className="mt-16 lg:mt-20">
-          <div className="grid lg:grid-cols-[minmax(0,280px)_1fr] gap-8 lg:gap-12 items-start">
-            <SidebarTitle
-              eyebrow={<SectionEyebrow>Committees</SectionEyebrow>}
-              title="Organizing Committee"
-            />
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-60px" }}
-              className="grid sm:grid-cols-2 gap-5 lg:gap-6"
-            >
-              {organizing.programChairs.map((chair) => (
-                <OrganizingCard
-                  key={chair.id}
-                  role="Program Chair"
-                  icon={HiOutlineUser}
-                  title={chair.name}
-                  affiliation={chair.affiliation}
-                  email={chair.email}
-                />
-              ))}
-              <OrganizingCard
-                role="Organizing Institution"
-                icon={HiOutlineBuildingOffice2}
-                title={organizing.institution.name}
-                affiliation={organizing.institution.address}
-              />
-            </motion.div>
-          </div>
-        </BlockDivider>
+        {committeeSections.map((section, index) => (
+          <CommitteeBlock
+            key={section.key}
+            icon={section.icon}
+            title={section.title}
+            members={section.members}
+            layout={section.layout}
+            showEmail={section.showEmail}
+            isFirst={index === 0}
+          />
+        ))}
       </Container>
     </section>
   );
