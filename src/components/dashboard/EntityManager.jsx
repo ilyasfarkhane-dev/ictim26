@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { HiOutlinePencilSquare, HiOutlineTrash, HiOutlinePlus } from "react-icons/hi2";
 import DashButton from "./DashButton";
 import DashModal from "./DashModal";
-import { createRow, updateRow, deleteRow } from "../../lib/contentApi";
+import { createRow, updateRow, deleteRow, lookupPersistedId } from "../../lib/contentApi";
 import { isPersistedId } from "../../lib/ids";
 import { useConference } from "../../hooks/useConference";
 
@@ -23,19 +23,45 @@ export default function EntityManager({
   const [form, setForm] = useState(getInitialForm());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [resolvingId, setResolvingId] = useState(false);
+  const editingIdRef = useRef(null);
+  const editingOriginalRef = useRef(null);
 
   const openCreate = () => {
     setEditing(null);
+    editingIdRef.current = null;
+    editingOriginalRef.current = null;
     setForm(getInitialForm());
     setError("");
     setModalOpen(true);
   };
 
-  const openEdit = (item) => {
+  const openEdit = async (item) => {
     setEditing(item);
     setForm(item);
     setError("");
     setModalOpen(true);
+    editingOriginalRef.current = item;
+
+    if (item?.id && isPersistedId(item.id)) {
+      editingIdRef.current = item.id;
+      return;
+    }
+
+    setResolvingId(true);
+    try {
+      editingIdRef.current = await lookupPersistedId(table, item);
+    } finally {
+      setResolvingId(false);
+    }
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setEditing(null);
+    editingIdRef.current = null;
+    editingOriginalRef.current = null;
+    setError("");
   };
 
   const handleSave = async (e) => {
@@ -46,13 +72,26 @@ export default function EntityManager({
       const row = toRow(form, items.length);
       const { sort_order: _sort, ...updates } = row;
 
-      if (editing?.id && isPersistedId(editing.id)) {
-        await updateRow(table, editing.id, updates);
+      if (editing) {
+        let id =
+          editingIdRef.current ??
+          (editing.id && isPersistedId(editing.id) ? editing.id : null) ??
+          (form.id && isPersistedId(form.id) ? form.id : null);
+
+        if (!id) {
+          id = await lookupPersistedId(table, editingOriginalRef.current ?? form);
+        }
+
+        if (!id) {
+          throw new Error("Could not find this item in the database. Refresh and try again.");
+        }
+
+        await updateRow(table, id, updates);
       } else {
         await createRow(table, row);
       }
       await refresh();
-      setModalOpen(false);
+      closeModal();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -60,8 +99,11 @@ export default function EntityManager({
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!isPersistedId(id)) return;
+  const handleDelete = async (item) => {
+    const id =
+      (item?.id && isPersistedId(item.id) ? item.id : null) ??
+      (await lookupPersistedId(table, item));
+    if (!id) return;
     if (!window.confirm("Delete this item?")) return;
     try {
       await deleteRow(table, id);
@@ -135,7 +177,7 @@ export default function EntityManager({
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => handleDelete(item)}
                           className="p-2 rounded-lg text-dash-muted hover:bg-red-50 hover:text-red-600 transition-colors duration-200 cursor-pointer dash-focus-ring"
                           aria-label="Delete"
                         >
@@ -154,18 +196,18 @@ export default function EntityManager({
       <DashModal
         title={editing ? `Edit ${title}` : `Add ${title}`}
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={closeModal}
         wide
       >
         <form onSubmit={handleSave} className="space-y-4">
           {renderForm(form, setForm)}
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex justify-end gap-3 pt-2">
-            <DashButton variant="secondary" type="button" onClick={() => setModalOpen(false)}>
+            <DashButton variant="secondary" type="button" onClick={closeModal}>
               Cancel
             </DashButton>
-            <DashButton type="submit" disabled={saving}>
-              {saving ? "Saving…" : "Save"}
+            <DashButton type="submit" disabled={saving || resolvingId}>
+              {saving ? "Saving…" : resolvingId ? "Loading…" : "Save"}
             </DashButton>
           </div>
         </form>

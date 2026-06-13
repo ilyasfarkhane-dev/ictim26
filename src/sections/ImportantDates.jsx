@@ -22,22 +22,14 @@ const iconMap = {
   calendar: HiOutlineCalendarDays,
 };
 
-const DESKTOP_GRID_COLS = {
-  1: "grid-cols-1",
-  2: "grid-cols-2",
-  3: "grid-cols-3",
-  4: "grid-cols-4",
-  5: "grid-cols-5",
-};
-
 function DateCard({ item, isLast, variant = "desktop" }) {
   const Icon = iconMap[item.icon];
 
   return (
     <article
-      className={`relative flex flex-col rounded-2xl border p-5 sm:p-6 transition-all duration-300 ${
+      className={`relative flex h-full min-h-[220px] flex-col rounded-2xl border p-4 sm:p-5 transition-colors duration-200 ${
         isLast
-          ? "bg-primary border-primary text-white shadow-glow lg:-mt-1 lg:scale-[1.03]"
+          ? "bg-primary border-primary text-white shadow-glow"
           : "bg-white/90 backdrop-blur-sm border-border hover:border-primary/25 hover:shadow-premium"
       }`}
     >
@@ -82,7 +74,7 @@ function DateCard({ item, isLast, variant = "desktop" }) {
 
       <time
         dateTime={item.date}
-        className={`mt-2 text-xl sm:text-2xl font-extrabold tracking-tight leading-none ${
+        className={`mt-2 text-lg sm:text-xl font-extrabold tracking-tight leading-none ${
           isLast ? "text-white" : "text-navy"
         }`}
       >
@@ -90,7 +82,7 @@ function DateCard({ item, isLast, variant = "desktop" }) {
       </time>
 
       <h3
-        className={`mt-3 text-sm sm:text-base font-bold leading-snug ${
+        className={`mt-2.5 text-sm font-bold leading-snug ${
           isLast ? "text-white" : "text-navy"
         }`}
       >
@@ -98,7 +90,7 @@ function DateCard({ item, isLast, variant = "desktop" }) {
       </h3>
 
       <p
-        className={`mt-2 text-sm leading-relaxed flex-1 ${
+        className={`mt-1.5 text-xs sm:text-sm leading-relaxed flex-1 ${
           isLast ? "text-white/80" : "text-text-secondary"
         }`}
       >
@@ -113,8 +105,6 @@ export default function ImportantDates() {
   const visibleSteps = getVisibleDates(participationSteps);
 
   if (visibleSteps.length === 0) return null;
-
-  const desktopGridCols = DESKTOP_GRID_COLS[visibleSteps.length] ?? "grid-cols-1";
 
   return (
     <section
@@ -141,11 +131,16 @@ export default function ImportantDates() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-60px" }}
-          className="hidden lg:block relative pt-8"
+          className="hidden md:block relative pt-8"
         >
-          <div className={`grid ${desktopGridCols} gap-4`}>
+          <div className="flex flex-row flex-nowrap items-stretch gap-3 lg:gap-4">
             {visibleSteps.map((item, i) => (
-              <motion.div key={item.id} variants={fadeUp} custom={i * 0.07}>
+              <motion.div
+                key={item.id}
+                variants={fadeUp}
+                custom={i * 0.07}
+                className="min-w-0 flex-1"
+              >
                 <DateCard
                   item={item}
                   isLast={i === visibleSteps.length - 1}
@@ -161,7 +156,7 @@ export default function ImportantDates() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-40px" }}
-          className="lg:hidden relative"
+          className="md:hidden relative"
         >
           <div className="absolute left-5 top-4 bottom-4 w-0.5 bg-gradient-to-b from-primary via-accent to-primary/30" />
 

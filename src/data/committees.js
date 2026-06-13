@@ -1,4 +1,27 @@
 export const committees = {
+  groupSettings: {
+    honoraryChairs: { enabled: true },
+    conferenceChair: { enabled: true },
+    conferenceCoChair: { enabled: true },
+    sponsorshipChairs: { enabled: true },
+    webChairs: { enabled: true },
+    publicityChairs: { enabled: true },
+    registrationChairs: { enabled: true },
+    publicationChairs: { enabled: true },
+    speakersSessionChairs: { enabled: true },
+    organizingSenior: { enabled: true },
+    organizingJuniors: { enabled: true },
+    scientific: { enabled: true },
+  },
+  honoraryChairs: [],
+  conferenceChair: [],
+  conferenceCoChair: [],
+  sponsorshipChairs: [],
+  webChairs: [],
+  publicityChairs: [],
+  registrationChairs: [],
+  publicationChairs: [],
+  speakersSessionChairs: [],
   organizingSenior: [
     {
       id: "org-sr-1",

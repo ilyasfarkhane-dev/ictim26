@@ -107,6 +107,7 @@ export default function DatesPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingDateId, setEditingDateId] = useState(null);
   const editingDateIdRef = useRef(null);
+  const editingOriginalRef = useRef(null);
   const [form, setForm] = useState(emptyDate());
   const [saving, setSaving] = useState(false);
   const [resolvingId, setResolvingId] = useState(false);
@@ -226,6 +227,7 @@ export default function DatesPage() {
     setIsEditing(false);
     setEditingDateId(null);
     editingDateIdRef.current = null;
+    editingOriginalRef.current = null;
     setForm(emptyDate());
     setError("");
     setModalOpen(true);
@@ -236,8 +238,15 @@ export default function DatesPage() {
     setForm({ ...item });
     setError("");
     setModalOpen(true);
-    setResolvingId(true);
+    editingOriginalRef.current = item;
 
+    if (isPersistedId(item.id)) {
+      editingDateIdRef.current = item.id;
+      setEditingDateId(item.id);
+      return;
+    }
+
+    setResolvingId(true);
     try {
       const id = await resolveDateId(item);
       editingDateIdRef.current = id;
@@ -269,6 +278,7 @@ export default function DatesPage() {
     setIsEditing(false);
     setEditingDateId(null);
     editingDateIdRef.current = null;
+    editingOriginalRef.current = null;
     setError("");
   };
 
@@ -293,17 +303,23 @@ export default function DatesPage() {
           (form.id && isPersistedId(form.id) ? form.id : null);
 
         if (!id) {
-          id = await lookupPersistedId("important_dates", form);
+          id = await lookupPersistedId(
+            "important_dates",
+            editingOriginalRef.current ?? form
+          );
         }
 
         if (!id) {
-          throw new Error("Could not find this milestone in the database. Refresh the page and try again.");
+          throw new Error(
+            "Could not find this milestone in the database. Refresh the page and try again."
+          );
         }
 
         await updateRow("important_dates", id, updates);
       } else {
         await createRow("important_dates", row);
       }
+
       await refresh();
       closeModal();
       setMessage("Milestone saved successfully.");
@@ -638,7 +654,14 @@ export default function DatesPage() {
             <DashButton variant="secondary" type="button" onClick={closeModal}>
               Cancel
             </DashButton>
-            <DashButton type="submit" disabled={saving || resolvingId}>
+            <DashButton
+              type="submit"
+              disabled={
+                saving ||
+                resolvingId ||
+                (isEditing && !editingDateId && !isPersistedId(form.id))
+              }
+            >
               {saving ? "Saving…" : resolvingId ? "Loading…" : "Save milestone"}
             </DashButton>
           </div>

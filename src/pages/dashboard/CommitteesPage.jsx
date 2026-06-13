@@ -25,43 +25,19 @@ import { isCommitteesSectionEnabled } from "../../lib/sectionSettings";
 import {
   emptyMember,
   getVisibleMembers,
+  countCommitteeMembers,
   hydrateCommitteesForEdit,
   memberInitial,
-  normalizeCommittees,
   prepareCommitteesForSave,
+  COMMITTEE_GROUPS,
+  isCommitteeGroupEnabled,
 } from "../../lib/committees";
 import {
   downloadCommitteeTemplate,
+  formatImportSummary,
   parseCommitteeExcelFile,
 } from "../../lib/parseCommitteeExcel";
 import ExcelImport from "../../components/dashboard/ExcelImport";
-
-const TABS = [
-  {
-    id: "organizingSenior",
-    label: "Organizing (Senior)",
-    shortLabel: "Senior",
-    description: "Organizing Local Committee (Senior)",
-    prefix: "org-sr",
-    showEmail: true,
-  },
-  {
-    id: "organizingJuniors",
-    label: "Organizing (Juniors)",
-    shortLabel: "Juniors",
-    description: "Organizing Local Committee (Juniors)",
-    prefix: "org-jr",
-    showEmail: false,
-  },
-  {
-    id: "scientific",
-    label: "Scientific Committee",
-    shortLabel: "Scientific",
-    description: "Scientific Committee members",
-    prefix: "sci",
-    showEmail: false,
-  },
-];
 
 const FILTERS = [
   { id: "all", label: "All" },
@@ -105,7 +81,7 @@ function emptyMemberForm(prefix, showEmail) {
 export default function CommitteesPage() {
   const { committees: liveCommittees, sectionSettings, refresh } = useConference();
   const sectionEnabled = isCommitteesSectionEnabled(sectionSettings);
-  const [activeTab, setActiveTab] = useState("organizingSenior");
+  const [activeTab, setActiveTab] = useState("honoraryChairs");
   const [form, setForm] = useState(() => hydrateCommitteesForEdit(liveCommittees));
   const [savedForm, setSavedForm] = useState(() => hydrateCommitteesForEdit(liveCommittees));
   const [saving, setSaving] = useState(false);
@@ -122,8 +98,14 @@ export default function CommitteesPage() {
   const [editingMemberId, setEditingMemberId] = useState(null);
   const [memberForm, setMemberForm] = useState(emptyMemberForm("org-sr", true));
   const [modalError, setModalError] = useState("");
+  const [importWarnings, setImportWarnings] = useState([]);
+  const skipNextSyncRef = useRef(false);
 
   useEffect(() => {
+    if (skipNextSyncRef.current) {
+      skipNextSyncRef.current = false;
+      return;
+    }
     const next = hydrateCommitteesForEdit(liveCommittees);
     setForm(next);
     setSavedForm(cloneForm(next));
@@ -136,22 +118,42 @@ export default function CommitteesPage() {
     [form, savedForm]
   );
 
-  const activeMeta = TABS.find((t) => t.id === activeTab) ?? TABS[0];
+  const activeMeta = COMMITTEE_GROUPS.find((t) => t.id === activeTab) ?? COMMITTEE_GROUPS[0];
   const activeMembers = form[activeTab] ?? [];
+  const groupEnabled = form.groupSettings?.[activeTab]?.enabled !== false;
 
-  const stats = useMemo(() => {
-    const normalized = normalizeCommittees(form);
-    return TABS.reduce((acc, tab) => {
-      const all = normalized[tab.id] ?? [];
-      const visible = getVisibleMembers(all);
-      acc[tab.id] = {
-        total: all.length,
-        visible: visible.length,
-        hidden: all.length - visible.length,
-      };
-      return acc;
-    }, {});
-  }, [form]);
+  const toggleGroupVisibility = async (next) => {
+    const nextForm = {
+      ...form,
+      groupSettings: {
+        ...form.groupSettings,
+        [activeTab]: { enabled: next },
+      },
+    };
+    setForm(nextForm);
+    await persistForm(
+      nextForm,
+      next
+        ? `${activeMeta.description} is now visible on the site.`
+        : `${activeMeta.description} hidden from the site.`
+    );
+  };
+
+  const stats = useMemo(
+    () =>
+      COMMITTEE_GROUPS.reduce((acc, tab) => {
+        acc[tab.id] = countCommitteeMembers(form[tab.id]);
+        return acc;
+      }, {}),
+    [form]
+  );
+
+  const totalMembers = useMemo(
+    () => COMMITTEE_GROUPS.reduce((sum, tab) => sum + stats[tab.id].total, 0),
+    [stats]
+  );
+
+  const activeStats = stats[activeTab] ?? { total: 0, visible: 0, hidden: 0 };
 
   const canReorder = !search.trim() && filter === "all";
 
@@ -196,23 +198,33 @@ export default function CommitteesPage() {
     setMessage("");
   };
 
+  const persistForm = useCallback(
+    async (nextForm, successMessage = "Committees saved successfully.") => {
+      setSaving(true);
+      setMessage("");
+      try {
+        const payload = prepareCommitteesForSave(nextForm);
+        await upsertSetting("committees", payload);
+        const hydrated = hydrateCommitteesForEdit(payload);
+        skipNextSyncRef.current = true;
+        await refresh();
+        setForm(hydrated);
+        setSavedForm(cloneForm(hydrated));
+        if (successMessage) setMessage(successMessage);
+        return true;
+      } catch (err) {
+        setMessage(err.message);
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [refresh]
+  );
+
   const handleSave = async (e) => {
     e?.preventDefault?.();
-    setSaving(true);
-    setMessage("");
-    try {
-      const payload = prepareCommitteesForSave(form);
-      await upsertSetting("committees", payload);
-      const hydrated = hydrateCommitteesForEdit(payload);
-      await refresh();
-      setForm(hydrated);
-      setSavedForm(cloneForm(hydrated));
-      setMessage("Committees saved successfully.");
-    } catch (err) {
-      setMessage(err.message);
-    } finally {
-      setSaving(false);
-    }
+    await persistForm(form);
   };
 
   const updateList = useCallback((key, list) => {
@@ -242,30 +254,49 @@ export default function CommitteesPage() {
     setModalError("");
   };
 
-  const handleMemberSave = (e) => {
+  const handleMemberSave = async (e) => {
     e.preventDefault();
     if (!memberForm.name?.trim()) {
       setModalError("Name is required.");
       return;
     }
 
-    if (isEditing) {
-      updateList(
-        activeTab,
-        activeMembers.map((m) => (m.id === editingMemberId ? { ...memberForm } : m))
-      );
-    } else {
-      updateList(activeTab, [...activeMembers, { ...memberForm }]);
-    }
+    const nextList = isEditing
+      ? activeMembers.map((m) => (m.id === editingMemberId ? { ...memberForm } : m))
+      : [...activeMembers, { ...memberForm }];
+
+    const shouldEnableGroup =
+      !isEditing && nextList.some((m) => m.name?.trim()) && !groupEnabled;
+
+    const nextForm = {
+      ...form,
+      [activeTab]: nextList,
+      ...(shouldEnableGroup
+        ? {
+            groupSettings: {
+              ...form.groupSettings,
+              [activeTab]: { enabled: true },
+            },
+          }
+        : {}),
+    };
+
+    setForm(nextForm);
     closeModal();
+    await persistForm(
+      nextForm,
+      isEditing ? "Member updated." : "Member added and saved to the site."
+    );
   };
 
-  const handleRemove = (member) => {
+  const handleRemove = async (member) => {
     if (!window.confirm(`Remove "${member.name || "this member"}" from ${activeMeta.label}?`)) return;
-    updateList(
-      activeTab,
-      activeMembers.filter((m) => m.id !== member.id)
-    );
+    const nextForm = {
+      ...form,
+      [activeTab]: activeMembers.filter((m) => m.id !== member.id),
+    };
+    setForm(nextForm);
+    await persistForm(nextForm, "Member removed.");
   };
 
   const handleDragStart = (id) => setDraggingId(id);
@@ -276,9 +307,12 @@ export default function CommitteesPage() {
     setDragOverId(targetId);
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = async () => {
     if (draggingId && dragOverId && draggingId !== dragOverId) {
-      updateList(activeTab, reorderList(activeMembers, draggingId, dragOverId));
+      const nextList = reorderList(activeMembers, draggingId, dragOverId);
+      const nextForm = { ...form, [activeTab]: nextList };
+      setForm(nextForm);
+      await persistForm(nextForm, "Member order updated.");
     }
     setDraggingId(null);
     setDragOverId(null);
@@ -301,26 +335,25 @@ export default function CommitteesPage() {
     });
 
     if (parsed.mode === "multi") {
+      setForm((prev) => {
+        const next = { ...prev };
+        for (const group of COMMITTEE_GROUPS) {
+          next[group.id] = mergeImportedMembers(prev[group.id], parsed[group.id], mode);
+        }
+        return next;
+      });
+    } else {
+      const imported = parsed[activeTab] ?? [];
       setForm((prev) => ({
         ...prev,
-        organizingSenior: mergeImportedMembers(prev.organizingSenior, parsed.organizingSenior, mode),
-        organizingJuniors: mergeImportedMembers(prev.organizingJuniors, parsed.organizingJuniors, mode),
-        scientific: mergeImportedMembers(prev.scientific, parsed.scientific, mode),
+        [activeTab]: mergeImportedMembers(prev[activeTab], imported, mode),
       }));
-      setMessage(
-        `Imported ${parsed.totalRows} member${parsed.totalRows === 1 ? "" : "s"} across committees. Save to publish.`
-      );
-      return;
     }
 
-    const imported = parsed[activeTab] ?? [];
-    setForm((prev) => ({
-      ...prev,
-      [activeTab]: mergeImportedMembers(prev[activeTab], imported, mode),
-    }));
-    setMessage(
-      `Imported ${imported.length} member${imported.length === 1 ? "" : "s"} into ${activeMeta.label}. Save to publish.`
-    );
+    const { message, warnings } = formatImportSummary(parsed, { activeLabel: activeMeta.label });
+    setMessage(message);
+    setImportWarnings(warnings);
+    return { message, warnings };
   };
 
   const switchTab = (tabId) => {
@@ -338,8 +371,8 @@ export default function CommitteesPage() {
           </p>
           <h1 className="text-2xl font-bold text-dash-text">Committees</h1>
           <p className="mt-1 text-sm text-dash-muted max-w-xl">
-            Manage organizing local committees (senior & juniors) and the scientific committee
-            shown on the homepage.
+            Members save automatically when added or edited. Use &quot;Show on site&quot; per
+            committee to publish it on the homepage.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -377,31 +410,51 @@ export default function CommitteesPage() {
       </div>
 
       {message && (
-        <div className="mb-6">
+        <div className="mb-6 space-y-3">
           <StatusBanner message={message} />
+          {importWarnings.length > 0 && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <p className="font-semibold mb-1">Some rows were not imported</p>
+              <ul className="list-disc pl-5 space-y-0.5 text-xs leading-relaxed">
+                {importWarnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
-      <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {TABS.map((tab) => {
+      <div className="mb-6 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+        {COMMITTEE_GROUPS.map((tab) => {
           const tabStats = stats[tab.id];
           const isActive = activeTab === tab.id;
+          const tabLive = isCommitteeGroupEnabled(form, tab.id);
           return (
             <button
               key={tab.id}
               type="button"
               onClick={() => switchTab(tab.id)}
-              className={`dash-card px-4 py-3 text-left transition-all duration-200 cursor-pointer dash-focus-ring ${
+              className={`snap-start shrink-0 min-w-[9.5rem] dash-card px-4 py-4 text-left transition-all duration-200 cursor-pointer dash-focus-ring ${
                 isActive
                   ? "ring-2 ring-dash-primary/40 border-dash-primary/30 bg-blue-50/40"
                   : "hover:border-dash-primary/20 hover:bg-blue-50/20"
-              }`}
+              } ${!tabLive ? "opacity-60" : ""}`}
             >
-              <p className="text-xl font-bold text-dash-text tabular-nums">{tabStats.visible}</p>
-              <p className="text-xs text-dash-muted mt-0.5">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-dash-muted truncate">
                 {tab.shortLabel}
-                {tabStats.hidden > 0 && (
-                  <span className="text-dash-muted/70"> · {tabStats.hidden} hidden</span>
+              </p>
+              <p className="mt-1 text-2xl font-bold text-dash-text tabular-nums">{tabStats.total}</p>
+              <p className="mt-1 text-xs text-dash-muted">
+                {tabLive ? (
+                  <>
+                    {tabStats.visible} visible
+                    {tabStats.hidden > 0 && (
+                      <span className="text-amber-700"> · {tabStats.hidden} hidden</span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-amber-700">Hidden on site</span>
                 )}
               </p>
             </button>
@@ -409,9 +462,15 @@ export default function CommitteesPage() {
         })}
       </div>
 
+      <p className="mb-4 text-sm text-dash-muted">
+        <span className="font-semibold text-dash-text tabular-nums">{totalMembers}</span> members
+        across all committees
+      </p>
+
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-        {TABS.map((tab) => {
-          const count = stats[tab.id].visible;
+        {COMMITTEE_GROUPS.map((tab) => {
+          const { total, visible } = stats[tab.id];
+          const tabLive = isCommitteeGroupEnabled(form, tab.id);
           return (
             <button
               key={tab.id}
@@ -421,15 +480,19 @@ export default function CommitteesPage() {
                 activeTab === tab.id
                   ? "bg-dash-primary text-white shadow-sm"
                   : "bg-white border border-dash-border text-dash-text hover:bg-blue-50/80"
-              }`}
+              } ${!tabLive ? "opacity-60" : ""}`}
             >
               {tab.label}
               <span
-                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums ${
                   activeTab === tab.id ? "bg-white/20 text-white" : "bg-blue-50 text-dash-primary"
                 }`}
+                title={`${total} total · ${visible} visible on site`}
               >
-                {count}
+                {total}
+                <span className={`font-medium ${activeTab === tab.id ? "text-white/80" : "text-dash-muted"}`}>
+                  ({visible} live)
+                </span>
               </span>
             </button>
           );
@@ -484,12 +547,15 @@ export default function CommitteesPage() {
                 <strong>Required columns:</strong> Name, Affiliation
               </p>
               <p>
-                <strong>Optional:</strong> Email (senior committee only)
+                <strong>Optional:</strong> Email (chair committees), Committee column (Honorary, Conference
+                Chair, Senior, Scientific, etc.)
               </p>
               <p>
-                <strong>All committees at once:</strong> add a Committee column with values{" "}
-                <em>Senior</em>, <em>Juniors</em>, or <em>Scientific</em>, or use separate sheets
-                with those names.
+                <strong>Sheet names</strong> like <em>Honorary</em>, <em>Senior</em>, <em>Scientific</em>,
+                or committee-specific names also assign members automatically.
+              </p>
+              <p>
+                When importing from a tab, rows without a Committee value are added to that tab.
               </p>
             </>
           }
@@ -505,14 +571,48 @@ export default function CommitteesPage() {
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-lg font-bold text-dash-text">{activeMeta.label}</h2>
+                <h2 className="text-lg font-bold text-dash-text">{activeMeta.description}</h2>
+                {!groupEnabled && (
+                  <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
+                    Hidden on site
+                  </span>
+                )}
                 {isDirty && (
                   <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
                     Unsaved changes
                   </span>
                 )}
               </div>
-              <p className="text-sm text-dash-muted mt-0.5">{activeMeta.description}</p>
+              <p className="text-sm text-dash-muted mt-0.5">
+                {activeMeta.label}
+                <span className="mx-1.5 text-dash-border">·</span>
+                <span className="tabular-nums">
+                  {activeStats.total} member{activeStats.total === 1 ? "" : "s"}
+                </span>
+                {activeStats.total > 0 && (
+                  <span className="text-dash-muted">
+                    {" "}
+                    ({activeStats.visible} visible on site
+                    {activeStats.hidden > 0 ? `, ${activeStats.hidden} hidden` : ""})
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs font-medium text-dash-text">Show on site</p>
+                <p className="text-[10px] text-dash-muted mt-0.5 max-w-[9rem]">
+                  {groupEnabled
+                    ? "Committee appears when it has visible members"
+                    : "Hidden — members won't appear on the site"}
+                </p>
+              </div>
+              <DashToggle
+                id={`committee-group-${activeTab}`}
+                enabled={groupEnabled}
+                onChange={toggleGroupVisibility}
+                ariaLabel={`${groupEnabled ? "Hide" : "Show"} ${activeMeta.description} on website`}
+              />
             </div>
           </div>
 
@@ -601,14 +701,16 @@ export default function CommitteesPage() {
                       <DashToggle
                         id={`committee-${member.id}`}
                         enabled={enabled}
-                        onChange={(next) =>
-                          updateList(
-                            activeTab,
-                            activeMembers.map((m) =>
+                        onChange={async (next) => {
+                          const nextForm = {
+                            ...form,
+                            [activeTab]: activeMembers.map((m) =>
                               m.id === member.id ? { ...m, enabled: next } : m
-                            )
-                          )
-                        }
+                            ),
+                          };
+                          setForm(nextForm);
+                          await persistForm(nextForm, null);
+                        }}
                         ariaLabel={enabled ? "Hide member" : "Show member"}
                       />
                       <button
@@ -621,10 +723,15 @@ export default function CommitteesPage() {
                       </button>
                       <button
                         type="button"
-                        disabled={globalIndex === 0}
-                        onClick={() =>
-                          updateList(activeTab, moveItem(activeMembers, globalIndex, -1))
-                        }
+                        disabled={globalIndex === 0 || saving}
+                        onClick={async () => {
+                          const nextForm = {
+                            ...form,
+                            [activeTab]: moveItem(activeMembers, globalIndex, -1),
+                          };
+                          setForm(nextForm);
+                          await persistForm(nextForm, null);
+                        }}
                         className="hidden sm:block p-2 rounded-lg text-dash-muted hover:text-dash-primary hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer dash-focus-ring"
                         aria-label="Move up"
                       >
@@ -632,10 +739,15 @@ export default function CommitteesPage() {
                       </button>
                       <button
                         type="button"
-                        disabled={globalIndex >= activeMembers.length - 1}
-                        onClick={() =>
-                          updateList(activeTab, moveItem(activeMembers, globalIndex, 1))
-                        }
+                        disabled={globalIndex >= activeMembers.length - 1 || saving}
+                        onClick={async () => {
+                          const nextForm = {
+                            ...form,
+                            [activeTab]: moveItem(activeMembers, globalIndex, 1),
+                          };
+                          setForm(nextForm);
+                          await persistForm(nextForm, null);
+                        }}
                         className="hidden sm:block p-2 rounded-lg text-dash-muted hover:text-dash-primary hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer dash-focus-ring"
                         aria-label="Move down"
                       >

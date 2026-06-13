@@ -28,6 +28,7 @@ const menuItems = [
   { to: "/dashboard/speakers", label: "Speakers", icon: HiOutlineUserGroup },
   { to: "/dashboard/topics", label: "Topics", icon: HiOutlineTag },
   { to: "/dashboard/dates", label: "Important Dates", icon: HiOutlineCalendarDays },
+  { to: "/dashboard/quick-links", label: "Quick Links", icon: HiOutlineLink },
   { to: "/dashboard/workshops", label: "Workshops", icon: HiOutlineAcademicCap },
   { to: "/dashboard/sponsors", label: "Sponsors", icon: HiOutlineBuildingOffice2 },
   { to: "/dashboard/committees", label: "Committees", icon: HiOutlineUsers },

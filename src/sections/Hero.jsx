@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import {
   HiOutlineArrowRight,
+  HiOutlineArrowTopRightOnSquare,
   HiOutlineCalendarDays,
   HiOutlineMapPin,
   HiOutlineDocumentText,
@@ -11,6 +12,7 @@ import {
 import Badge from "../components/Badge";
 import Button from "../components/Button";
 import { useConference } from "../hooks/useConference";
+import { withBase } from "../config/paths";
 import {
   fadeUp,
   slideFromLeft,
@@ -31,6 +33,13 @@ const STAT_ICONS = [
   HiOutlineAcademicCap,
   HiOutlineSparkles,
 ];
+
+const HERO_BOOK = {
+  title: "Technologies of Information and Modeling",
+  href: "https://link.springer.com/book/10.1007/978-3-032-15147-6",
+  src: withBase("/assets/book.jpeg"),
+  alt: "Technologies of Information and Modeling — ICTIM 2024 Springer proceedings cover",
+};
 
 function HeroMetaCard({ icon: Icon, children }) {
   return (
@@ -78,6 +87,37 @@ function HeroStatCard({ icon: Icon, value, label }) {
   );
 }
 
+function HeroBookCover() {
+  return (
+    <motion.a
+      href={HERO_BOOK.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      variants={fadeUp}
+      initial="hidden"
+      animate="visible"
+      custom={0.35}
+      className="group relative mx-auto block w-full max-w-[220px] cursor-pointer overflow-hidden rounded-2xl shadow-xl ring-1 ring-slate-200/80 transition-shadow duration-200 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:mx-0 lg:max-w-none lg:sticky lg:top-44 xl:top-48"
+      aria-label={`${HERO_BOOK.title} — open Springer proceedings in a new tab`}
+    >
+      <img
+        src={HERO_BOOK.src}
+        alt={HERO_BOOK.alt}
+        className="block h-auto w-full object-cover transition-[filter] duration-200 group-hover:brightness-[0.88] group-focus-visible:brightness-[0.88]"
+      />
+      <div className="absolute inset-0 flex flex-col items-center justify-end bg-gradient-to-t from-navy/95 via-navy/55 to-navy/10 p-5 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+        <p className="text-center text-sm font-semibold leading-snug text-white sm:text-base">
+          {HERO_BOOK.title}
+        </p>
+        <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white/95">
+          View on Springer
+          <HiOutlineArrowTopRightOnSquare className="h-4 w-4 shrink-0" aria-hidden="true" />
+        </span>
+      </div>
+    </motion.a>
+  );
+}
+
 export default function Hero() {
   const { heroContent, heroHighlights, heroSponsors, heroImages } = useConference();
   const heroBackground = normalizeHeroImage(heroImages);
@@ -117,12 +157,13 @@ export default function Hero() {
       )}
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-6 lg:pl-12 lg:pr-8 xl:pl-16 xl:pr-8 2xl:pl-20">
-        <motion.div
-          variants={slideFromLeft}
-          initial="hidden"
-          animate="visible"
-          className="max-w-3xl [text-shadow:0_2px_12px_rgba(0,0,0,0.45)]"
-        >
+        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,240px)] xl:grid-cols-[minmax(0,1fr)_280px] lg:gap-12 xl:gap-14">
+          <motion.div
+            variants={slideFromLeft}
+            initial="hidden"
+            animate="visible"
+            className="max-w-3xl [text-shadow:0_2px_12px_rgba(0,0,0,0.45)]"
+          >
           {heroContent.badge && <Badge>{heroContent.badge}</Badge>}
 
           {heroContent.fullName && (
@@ -218,7 +259,12 @@ export default function Hero() {
               })}
             </div>
           )}
-        </motion.div>
+          </motion.div>
+
+          <div className="mt-8 flex justify-center lg:mt-0 lg:justify-end lg:pt-14 xl:pt-20">
+            <HeroBookCover />
+          </div>
+        </div>
       </div>
     </section>
   );

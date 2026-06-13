@@ -89,6 +89,7 @@ export default function TopicsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingTopicId, setEditingTopicId] = useState(null);
   const editingTopicIdRef = useRef(null);
+  const editingOriginalRef = useRef(null);
   const [form, setForm] = useState(emptyTopic());
   const [saving, setSaving] = useState(false);
   const [resolvingId, setResolvingId] = useState(false);
@@ -204,6 +205,7 @@ export default function TopicsPage() {
     setIsEditing(false);
     setEditingTopicId(null);
     editingTopicIdRef.current = null;
+    editingOriginalRef.current = null;
     setForm(emptyTopic());
     setError("");
     setModalOpen(true);
@@ -214,8 +216,15 @@ export default function TopicsPage() {
     setForm({ ...topic });
     setError("");
     setModalOpen(true);
-    setResolvingId(true);
+    editingOriginalRef.current = topic;
 
+    if (isPersistedId(topic.id)) {
+      editingTopicIdRef.current = topic.id;
+      setEditingTopicId(topic.id);
+      return;
+    }
+
+    setResolvingId(true);
     try {
       const id = await resolveTopicId(topic);
       editingTopicIdRef.current = id;
@@ -232,6 +241,7 @@ export default function TopicsPage() {
     setIsEditing(false);
     setEditingTopicId(null);
     editingTopicIdRef.current = null;
+    editingOriginalRef.current = null;
     setForm({
       name: `${topic.name} (copy)`,
       enabled: false,
@@ -245,6 +255,7 @@ export default function TopicsPage() {
     setIsEditing(false);
     setEditingTopicId(null);
     editingTopicIdRef.current = null;
+    editingOriginalRef.current = null;
     setError("");
   };
 
@@ -269,7 +280,7 @@ export default function TopicsPage() {
           (form.id && isPersistedId(form.id) ? form.id : null);
 
         if (!id) {
-          id = await lookupPersistedId("topics", form);
+          id = await lookupPersistedId("topics", editingOriginalRef.current ?? form);
         }
 
         if (!id) {
@@ -550,7 +561,14 @@ export default function TopicsPage() {
             <DashButton variant="secondary" type="button" onClick={closeModal}>
               Cancel
             </DashButton>
-            <DashButton type="submit" disabled={saving || resolvingId}>
+            <DashButton
+              type="submit"
+              disabled={
+                saving ||
+                resolvingId ||
+                (isEditing && !editingTopicId && !isPersistedId(form.id))
+              }
+            >
               {saving ? "Saving…" : resolvingId ? "Loading…" : "Save topic"}
             </DashButton>
           </div>

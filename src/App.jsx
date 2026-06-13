@@ -18,6 +18,7 @@ import ContentPage from "./pages/dashboard/ContentPage";
 import MediaPage from "./pages/dashboard/MediaPage";
 import HeroPage from "./pages/dashboard/HeroPage";
 import EditionsPage from "./pages/dashboard/EditionsPage";
+import QuickLinksPage from "./pages/dashboard/QuickLinksPage";
 
 export default function App() {
   return (
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="speakers" element={<SpeakersPage />} />
           <Route path="topics" element={<TopicsPage />} />
           <Route path="dates" element={<DatesPage />} />
+          <Route path="quick-links" element={<QuickLinksPage />} />
           <Route path="workshops" element={<WorkshopsPage />} />
           <Route path="sponsors" element={<SponsorsPage />} />
           <Route path="committees" element={<CommitteesPage />} />

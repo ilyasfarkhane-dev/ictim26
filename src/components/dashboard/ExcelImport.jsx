@@ -23,6 +23,7 @@ export default function ExcelImport({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [warnings, setWarnings] = useState([]);
   const [mode, setMode] = useState("replace");
   const [dragOver, setDragOver] = useState(false);
 
@@ -32,9 +33,16 @@ export default function ExcelImport({
     setLoading(true);
     setError("");
     setSuccess("");
+    setWarnings([]);
     try {
-      await onImport(file, { mode });
-      setSuccess(`"${file.name}" imported. Review the list below, then save to publish.`);
+      const result = await onImport(file, { mode });
+      const summary =
+        typeof result === "string"
+          ? result
+          : result?.message ||
+            `"${file.name}" imported. Review the list below, then save to publish.`;
+      setSuccess(summary);
+      setWarnings(Array.isArray(result?.warnings) ? result.warnings : []);
     } catch (err) {
       setError(err.message || "Import failed. Check your file format and try again.");
     } finally {
@@ -177,6 +185,17 @@ export default function ExcelImport({
               <HiOutlineCheckCircle className="w-5 h-5 shrink-0 mt-0.5" aria-hidden="true" />
               {success}
             </p>
+          )}
+
+          {warnings.length > 0 && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-900">
+              <p className="font-semibold mb-1">Rows skipped during import</p>
+              <ul className="list-disc pl-4 space-y-0.5 leading-relaxed">
+                {warnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            </div>
           )}
 
           {error && (

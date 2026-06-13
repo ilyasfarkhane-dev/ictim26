@@ -25,12 +25,16 @@ const TABLE_DEFAULTS = {
   topics: {
     getItems: () => defaults.topics,
     toRow: topicToRow,
-    matchKey: (item) => item.name,
+    matchKey: (item) => String(item?.name ?? "").trim().toLowerCase(),
   },
   important_dates: {
     getItems: () => defaults.participationSteps,
     toRow: dateToRow,
-    matchKey: (item) => item.title,
+    matchKey: (item) => {
+      const step = String(item?.step ?? "").trim();
+      if (step) return `step:${step}`;
+      return String(item?.title ?? "").trim();
+    },
   },
   workshops: {
     getItems: () => defaults.workshops,
@@ -45,7 +49,11 @@ const TABLE_DEFAULTS = {
   quick_links: {
     getItems: () => defaults.quickLinks,
     toRow: quickLinkToRow,
-    matchKey: (item) => item.title,
+    matchKey: (item) => {
+      const href = String(item?.href ?? "").trim();
+      if (href) return `href:${href}`;
+      return String(item?.title ?? "").trim();
+    },
   },
 };
 
@@ -80,6 +88,12 @@ function rowMatchKey(table, row) {
   const config = TABLE_DEFAULTS[table];
   if (!config) return String(row.id);
   return config.matchKey(MAPPERS[table](row));
+}
+
+function numericLocalId(value) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && /^\d+$/.test(value.trim())) return Number(value);
+  return null;
 }
 
 /** Keep one row per match key (title/name), prefer lowest sort_order then id. */
@@ -217,21 +231,43 @@ export async function lookupPersistedId(table, localItem) {
   const config = TABLE_DEFAULTS[table];
   const { data, error } = await supabase
     .from(table)
-    .select("id, sort_order, name, title")
+    .select("*")
     .order("sort_order", { ascending: true });
   if (error) throw error;
 
   const sorted = sortRowsByOrderAndId(data ?? []);
 
-  if (typeof localItem?.id === "number") {
-    const byOrder = sorted.find((row) => row.sort_order === localItem.id - 1);
+  const numericId = numericLocalId(localItem?.id);
+  if (numericId != null) {
+    const byOrder = sorted.find((row) => row.sort_order === numericId - 1);
     if (byOrder) return byOrder.id;
   }
 
   if (config && localItem) {
     const key = config.matchKey(localItem);
-    const byKey = sorted.find((row) => row.name === key || row.title === key);
-    if (byKey) return byKey.id;
+    if (key) {
+      const byKey = sorted.find((row) => rowMatchKey(table, row) === key);
+      if (byKey) return byKey.id;
+    }
+
+    // Legacy title-only match for important_dates
+    if (table === "important_dates" && localItem.title) {
+      const byTitle = sorted.find((row) => row.title === localItem.title);
+      if (byTitle) return byTitle.id;
+    }
+
+    if (table === "quick_links" && localItem.title) {
+      const byTitle = sorted.find((row) => row.title === localItem.title);
+      if (byTitle) return byTitle.id;
+    }
+
+    if (table === "topics" && localItem.name) {
+      const normalized = String(localItem.name).trim().toLowerCase();
+      const byName = sorted.find(
+        (row) => String(row.name ?? "").trim().toLowerCase() === normalized
+      );
+      if (byName) return byName.id;
+    }
   }
 
   return null;

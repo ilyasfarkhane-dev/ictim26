@@ -6,6 +6,7 @@ import {
   HiOutlineCalendarDays,
   HiOutlineSparkles,
   HiOutlineChevronRight,
+  HiOutlineLink,
 } from "react-icons/hi2";
 import StatCard from "../../components/dashboard/StatCard";
 import { useConference } from "../../hooks/useConference";
@@ -32,6 +33,7 @@ const quickActions = [
   { to: "/dashboard/topics", label: "Edit Topics", icon: HiOutlineTag, desc: "Research areas" },
   { to: "/dashboard/workshops", label: "Workshops", icon: HiOutlineAcademicCap, desc: "Registration cards" },
   { to: "/dashboard/dates", label: "Important Dates", icon: HiOutlineCalendarDays, desc: "Timeline steps" },
+  { to: "/dashboard/quick-links", label: "Quick Links", icon: HiOutlineLink, desc: "Homepage shortcuts" },
 ];
 
 export default function DashboardHome() {

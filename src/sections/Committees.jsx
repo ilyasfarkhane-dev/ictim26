@@ -5,12 +5,40 @@ import {
   HiOutlineUser,
   HiOutlineEnvelope,
   HiOutlineAcademicCap,
+  HiOutlineStar,
+  HiOutlineMegaphone,
+  HiOutlineGlobeAmericas,
+  HiOutlineClipboardDocumentList,
+  HiOutlineBookOpen,
+  HiOutlineMicrophone,
+  HiOutlineCurrencyDollar,
 } from "react-icons/hi2";
 import Container from "../components/Container";
 import { useConference } from "../hooks/useConference";
-import { getVisibleMembers, memberInitial } from "../lib/committees";
+import {
+  COMMITTEE_GROUPS,
+  countAllVisibleCommitteeMembers,
+  getVisibleGroupMembers,
+  isCommitteeGroupEnabled,
+  memberInitial,
+} from "../lib/committees";
 import { isCommitteesSectionEnabled } from "../lib/sectionSettings";
 import { fadeUp, staggerContainer } from "../utils/animations";
+
+const GROUP_ICONS = {
+  honoraryChairs: HiOutlineStar,
+  conferenceChair: HiOutlineUser,
+  conferenceCoChair: HiOutlineUser,
+  sponsorshipChairs: HiOutlineCurrencyDollar,
+  webChairs: HiOutlineGlobeAmericas,
+  publicityChairs: HiOutlineMegaphone,
+  registrationChairs: HiOutlineClipboardDocumentList,
+  publicationChairs: HiOutlineBookOpen,
+  speakersSessionChairs: HiOutlineMicrophone,
+  organizingSenior: HiOutlineUser,
+  organizingJuniors: HiOutlineUserGroup,
+  scientific: HiOutlineAcademicCap,
+};
 
 function MemberAvatar({ name, size = "md" }) {
   const sizeClass =
@@ -94,7 +122,7 @@ function BlockDivider({ children, className = "" }) {
   return <div className={className}>{children}</div>;
 }
 
-function SidebarTitle({ icon: Icon, title }) {
+function SidebarTitle({ icon: Icon, title, memberCount }) {
   return (
     <div className="lg:sticky lg:top-28">
       {Icon && (
@@ -106,6 +134,11 @@ function SidebarTitle({ icon: Icon, title }) {
         <SectionEyebrow>Committees</SectionEyebrow>
       </div>
       <h3 className="mt-3 text-2xl sm:text-3xl font-bold text-navy leading-tight">{title}</h3>
+      {memberCount > 0 && (
+        <p className="mt-3 inline-flex items-center rounded-full bg-light-blue px-3 py-1 text-xs font-semibold text-primary tabular-nums">
+          {memberCount} member{memberCount === 1 ? "" : "s"}
+        </p>
+      )}
       <div className="mt-5 h-1 w-12 rounded-full bg-primary" />
     </div>
   );
@@ -127,7 +160,7 @@ function CommitteeBlock({
       }
     >
       <div className="grid lg:grid-cols-[minmax(0,280px)_1fr] gap-8 lg:gap-12 items-start">
-        <SidebarTitle icon={icon} title={title} />
+        <SidebarTitle icon={icon} title={title} memberCount={members.length} />
         {members.length === 0 ? (
           <motion.p
             variants={fadeUp}
@@ -174,38 +207,22 @@ export default function Committees() {
 
   if (!isCommitteesSectionEnabled(sectionSettings)) return null;
 
-  const organizingSenior = getVisibleMembers(committees.organizingSenior);
-  const organizingJuniors = getVisibleMembers(committees.organizingJuniors);
-  const scientific = getVisibleMembers(committees.scientific);
+  const enabledSections = COMMITTEE_GROUPS.filter((group) =>
+    isCommitteeGroupEnabled(committees, group.id)
+  )
+    .map((group) => ({
+      key: group.id,
+      icon: GROUP_ICONS[group.id] ?? HiOutlineUserGroup,
+      title: group.description,
+      members: getVisibleGroupMembers(committees, group.id),
+      layout: group.layout,
+      showEmail: group.showEmail,
+    }))
+    .filter((section) => section.members.length > 0);
 
-  const hasAnyMembers =
-    organizingSenior.length > 0 || organizingJuniors.length > 0 || scientific.length > 0;
+  if (enabledSections.length === 0) return null;
 
-  if (!hasAnyMembers) return null;
-
-  const committeeSections = [
-    {
-      key: "organizingSenior",
-      icon: HiOutlineUser,
-      title: "Organizing Local Committee (Senior)",
-      members: organizingSenior,
-      showEmail: true,
-    },
-    {
-      key: "organizingJuniors",
-      icon: HiOutlineUserGroup,
-      title: "Organizing Local Committee (Juniors)",
-      members: organizingJuniors,
-      layout: "compact",
-    },
-    {
-      key: "scientific",
-      icon: HiOutlineAcademicCap,
-      title: "Scientific Committee",
-      members: scientific,
-      layout: "compact",
-    },
-  ];
+  const totalMembers = countAllVisibleCommitteeMembers(committees);
 
   return (
     <section id="committees" className="py-20 lg:py-28 bg-white">
@@ -224,9 +241,14 @@ export default function Committees() {
           <p className="mt-4 text-lg text-text-secondary leading-relaxed">
             Distinguished researchers and academics guiding {conference.name}
           </p>
+          {totalMembers > 0 && (
+            <p className="mt-3 text-sm font-medium text-primary tabular-nums">
+              {totalMembers} committee member{totalMembers === 1 ? "" : "s"}
+            </p>
+          )}
         </motion.div>
 
-        {committeeSections.map((section, index) => (
+        {enabledSections.map((section, index) => (
           <CommitteeBlock
             key={section.key}
             icon={section.icon}
