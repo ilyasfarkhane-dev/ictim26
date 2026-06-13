@@ -8,6 +8,7 @@ import {
   HiOutlineBuildingOffice2,
   HiOutlinePlus,
   HiOutlineTrash,
+  HiOutlineBookOpen,
 } from "react-icons/hi2";
 import DashToggle from "../../components/dashboard/DashToggle";
 import StatusBanner from "../../components/dashboard/StatusBanner";
@@ -172,6 +173,23 @@ export default function HeroPage() {
     setMessage("");
   };
 
+  const updateProceedings = (patch) => {
+    setForm((f) => ({
+      ...f,
+      content: {
+        ...f.content,
+        proceedingsPanel: { ...f.content.proceedingsPanel, ...patch },
+      },
+    }));
+    setMessage("");
+  };
+
+  const updateProceedingsFeature = (index, value) => {
+    const features = [...(form.content.proceedingsPanel?.features ?? [])];
+    features[index] = value;
+    updateProceedings({ features });
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -194,6 +212,9 @@ export default function HeroPage() {
   };
 
   const { content } = form;
+  const panel = content.proceedingsPanel ?? {};
+  const panelEnabled = panel.enabled !== false;
+  const submitEnabled = panel.submitEnabled !== false;
 
   return (
     <div className={isDirty ? "pb-24" : ""}>
@@ -204,8 +225,8 @@ export default function HeroPage() {
           </p>
           <h1 className="text-2xl font-bold text-dash-text">Hero Management</h1>
           <p className="mt-1 text-sm text-dash-muted max-w-xl">
-            Manage all homepage hero content — copy, meta pills, call-to-action buttons, background
-            image, and highlight stats.
+            Manage all homepage hero content — copy, proceedings sidebar, call-to-action buttons,
+            background image, and highlight stats.
           </p>
         </div>
         <a
@@ -309,6 +330,155 @@ export default function HeroPage() {
             {(content.ctas ?? []).map((cta, i) => (
               <CtaEditor key={cta.id ?? i} cta={cta} index={i} onUpdate={(patch) => updateCta(i, patch)} />
             ))}
+          </div>
+        </section>
+
+        <section className="dash-card p-6 space-y-6">
+          <SectionHeader
+            icon={HiOutlineBookOpen}
+            title="Proceedings sidebar"
+            description="White proceedings card and submit banner on the right side of the hero."
+          />
+
+          <div
+            className={`rounded-xl border p-4 space-y-5 transition-colors duration-200 ${
+              panelEnabled
+                ? "border-dash-border bg-white"
+                : "border-dash-border/80 bg-dash-bg/40 opacity-75"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <DashToggle
+                  id="hero-proceedings-enabled"
+                  enabled={panelEnabled}
+                  onChange={(next) => updateProceedings({ enabled: next })}
+                  ariaLabel={panelEnabled ? "Proceedings sidebar visible" : "Proceedings sidebar hidden"}
+                />
+                <div>
+                  <label
+                    htmlFor="hero-proceedings-enabled"
+                    className="text-xs font-semibold uppercase tracking-wider text-dash-text cursor-pointer"
+                  >
+                    Show on homepage
+                  </label>
+                  <p className="text-[11px] text-dash-muted mt-0.5">
+                    {panelEnabled ? "Visible in hero right column" : "Hidden from homepage"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className={`space-y-4 ${panelEnabled ? "" : "pointer-events-none opacity-50"}`}>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <DashInput
+                  label="Card title"
+                  value={panel.cardTitle ?? ""}
+                  onChange={(e) => updateProceedings({ cardTitle: e.target.value })}
+                  placeholder="ICTIM 2024 Proceedings"
+                />
+                <DashInput
+                  label="Card subtitle"
+                  value={panel.cardSubtitle ?? ""}
+                  onChange={(e) => updateProceedings({ cardSubtitle: e.target.value })}
+                  placeholder="Published in Springer CCIS Series"
+                />
+              </div>
+
+              <ImageUpload
+                label="Book cover"
+                value={panel.bookCoverSrc ?? ""}
+                onChange={(url) => updateProceedings({ bookCoverSrc: url })}
+                folder={CLOUDINARY_FOLDERS.hero}
+                previewClassName="h-32 w-auto max-w-[6rem] object-contain rounded-lg bg-dash-bg/30"
+                hint="Proceedings cover shown in the card. JPG or PNG recommended."
+              />
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <DashInput
+                  label="Book title (alt text)"
+                  value={panel.bookTitle ?? ""}
+                  onChange={(e) => updateProceedings({ bookTitle: e.target.value })}
+                  placeholder="Technologies of Information and Modeling"
+                />
+                <DashInput
+                  label="Proceedings link"
+                  value={panel.bookHref ?? ""}
+                  onChange={(e) => updateProceedings({ bookHref: e.target.value })}
+                  placeholder="https://link.springer.com/book/..."
+                />
+              </div>
+
+              <DashInput
+                label="View button label"
+                value={panel.viewButtonLabel ?? ""}
+                onChange={(e) => updateProceedings({ viewButtonLabel: e.target.value })}
+                placeholder="View Proceedings"
+              />
+
+              <div className="space-y-3 pt-2 border-t border-dash-border">
+                <p className="text-xs font-semibold uppercase tracking-wider text-dash-muted">
+                  Feature bullets (up to 3)
+                </p>
+                {(panel.features ?? []).slice(0, 3).map((feature, i) => (
+                  <DashTextarea
+                    key={i}
+                    label={`Feature ${i + 1}`}
+                    value={feature ?? ""}
+                    onChange={(e) => updateProceedingsFeature(i, e.target.value)}
+                    rows={2}
+                    placeholder="Proceedings highlight…"
+                  />
+                ))}
+              </div>
+
+              <div className="space-y-4 pt-2 border-t border-dash-border">
+                <div className="flex items-center gap-3">
+                  <DashToggle
+                    id="hero-submit-banner-enabled"
+                    enabled={submitEnabled}
+                    onChange={(next) => updateProceedings({ submitEnabled: next })}
+                    ariaLabel={submitEnabled ? "Submit banner visible" : "Submit banner hidden"}
+                  />
+                  <div>
+                    <label
+                      htmlFor="hero-submit-banner-enabled"
+                      className="text-xs font-semibold uppercase tracking-wider text-dash-text cursor-pointer"
+                    >
+                      Submit banner
+                    </label>
+                    <p className="text-[11px] text-dash-muted mt-0.5">
+                      Blue call-to-action below the proceedings card
+                    </p>
+                  </div>
+                </div>
+
+                <div className={submitEnabled ? "" : "opacity-50 pointer-events-none"}>
+                  <DashInput
+                    label="Submit banner title"
+                    value={panel.submitTitle ?? ""}
+                    onChange={(e) => updateProceedings({ submitTitle: e.target.value })}
+                    placeholder="Submit your paper now!"
+                  />
+                  <div className="mt-4">
+                    <DashInput
+                      label="Submit banner subtitle"
+                      value={panel.submitSubtitle ?? ""}
+                      onChange={(e) => updateProceedings({ submitSubtitle: e.target.value })}
+                      placeholder={`Be part of ${conference.name} Proceedings`}
+                    />
+                  </div>
+                  <div className="mt-4">
+                    <DashInput
+                      label="Submit banner link"
+                      value={panel.submitHref ?? ""}
+                      onChange={(e) => updateProceedings({ submitHref: e.target.value })}
+                      placeholder="#call-for-papers"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

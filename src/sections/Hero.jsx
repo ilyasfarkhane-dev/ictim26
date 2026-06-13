@@ -1,18 +1,21 @@
 import { motion } from "framer-motion";
 import {
   HiOutlineArrowRight,
-  HiOutlineArrowTopRightOnSquare,
   HiOutlineCalendarDays,
   HiOutlineMapPin,
   HiOutlineDocumentText,
   HiOutlineUserGroup,
   HiOutlineAcademicCap,
   HiOutlineSparkles,
+  HiOutlineBookOpen,
+  HiOutlineCheckCircle,
+  HiOutlineGlobeAlt,
+  HiOutlineChevronRight,
+  HiOutlineViewfinderCircle,
 } from "react-icons/hi2";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
 import { useConference } from "../hooks/useConference";
-import { withBase } from "../config/paths";
 import {
   fadeUp,
   slideFromLeft,
@@ -25,7 +28,7 @@ import {
 } from "../lib/heroImages";
 import { getVisibleHeroHighlights } from "../lib/heroHighlights";
 import { getVisibleHeroSponsors } from "../lib/heroSponsors";
-import { getVisibleHeroCtas } from "../lib/heroContent";
+import { getVisibleHeroCtas, getHeroProceedingsPanel, resolveProceedingsCoverSrc } from "../lib/heroContent";
 
 const STAT_ICONS = [
   HiOutlineDocumentText,
@@ -34,12 +37,11 @@ const STAT_ICONS = [
   HiOutlineSparkles,
 ];
 
-const HERO_BOOK = {
-  title: "Technologies of Information and Modeling",
-  href: "https://link.springer.com/book/10.1007/978-3-032-15147-6",
-  src: withBase("/assets/book.jpeg"),
-  alt: "Technologies of Information and Modeling — ICTIM 2024 Springer proceedings cover",
-};
+const PROCEEDINGS_FEATURE_ICONS = [
+  HiOutlineCheckCircle,
+  HiOutlineGlobeAlt,
+  HiOutlineViewfinderCircle,
+];
 
 function HeroMetaCard({ icon: Icon, children }) {
   return (
@@ -87,34 +89,110 @@ function HeroStatCard({ icon: Icon, value, label }) {
   );
 }
 
-function HeroBookCover() {
+function HeroProceedingsPanel({ panel }) {
+  const bookCoverSrc = resolveProceedingsCoverSrc(panel.bookCoverSrc);
+  const visibleFeatures = (panel.features ?? []).filter((text) => text?.trim());
+
   return (
-    <motion.a
-      href={HERO_BOOK.href}
-      target="_blank"
-      rel="noopener noreferrer"
+    <motion.div
       variants={fadeUp}
       initial="hidden"
       animate="visible"
       custom={0.35}
-      className="group relative mx-auto block w-full max-w-[220px] cursor-pointer overflow-hidden rounded-2xl shadow-xl ring-1 ring-slate-200/80 transition-shadow duration-200 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:mx-0 lg:max-w-none lg:sticky lg:top-44 xl:top-48"
-      aria-label={`${HERO_BOOK.title} — open Springer proceedings in a new tab`}
+      className="mx-auto w-full max-w-[420px] space-y-4 lg:mx-0 lg:sticky lg:top-44 xl:top-48"
     >
-      <img
-        src={HERO_BOOK.src}
-        alt={HERO_BOOK.alt}
-        className="block h-auto w-full object-cover transition-[filter] duration-200 group-hover:brightness-[0.88] group-focus-visible:brightness-[0.88]"
-      />
-      <div className="absolute inset-0 flex flex-col items-center justify-end bg-gradient-to-t from-navy/95 via-navy/55 to-navy/10 p-5 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
-        <p className="text-center text-sm font-semibold leading-snug text-white sm:text-base">
-          {HERO_BOOK.title}
-        </p>
-        <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white/95">
-          View on Springer
-          <HiOutlineArrowTopRightOnSquare className="h-4 w-4 shrink-0" aria-hidden="true" />
-        </span>
+      <div className="overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200/80">
+        <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
+          <div className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-white">
+              <HiOutlineBookOpen className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0 pt-0.5">
+              {panel.cardTitle && (
+                <h2 className="text-base font-bold leading-snug text-navy sm:text-lg">
+                  {panel.cardTitle}
+                </h2>
+              )}
+              {panel.cardSubtitle && (
+                <p className="mt-0.5 text-sm text-slate-500">{panel.cardSubtitle}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-4 px-5 py-5 sm:px-6 sm:py-6">
+          {bookCoverSrc && (
+            <a
+              href={panel.bookHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group shrink-0 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              aria-label={`${panel.bookTitle} — open proceedings in a new tab`}
+            >
+              <img
+                src={bookCoverSrc}
+                alt={`${panel.bookTitle} — proceedings cover`}
+                className="h-auto w-[88px] rounded-md shadow-md ring-1 ring-slate-200/80 transition-shadow duration-200 group-hover:shadow-lg sm:w-[96px]"
+              />
+            </a>
+          )}
+
+          {visibleFeatures.length > 0 && (
+            <ul className="min-w-0 flex-1 space-y-3.5">
+              {visibleFeatures.map((text, index) => {
+                const Icon = PROCEEDINGS_FEATURE_ICONS[index] ?? HiOutlineCheckCircle;
+                return (
+                  <li key={`${index}-${text}`} className="flex items-start gap-2.5">
+                    <Icon
+                      className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                      aria-hidden="true"
+                    />
+                    <span className="text-xs leading-relaxed text-slate-600 sm:text-[13px]">
+                      {text}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {panel.viewButtonLabel && panel.bookHref && (
+          <div className="flex justify-end border-t border-slate-100 px-5 py-4 sm:px-6">
+            <a
+              href={panel.bookHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-navy transition-colors duration-200 hover:bg-slate-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              {panel.viewButtonLabel}
+              <HiOutlineChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+            </a>
+          </div>
+        )}
       </div>
-    </motion.a>
+
+      {panel.submitEnabled !== false && panel.submitTitle && (
+        <a
+          href={panel.submitHref || "#call-for-papers"}
+          className="group flex items-center gap-4 rounded-2xl bg-primary px-5 py-4 shadow-lg transition-colors duration-200 hover:bg-primary/90 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+        >
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white">
+            <HiOutlineDocumentText className="h-6 w-6" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-bold uppercase tracking-wide text-white sm:text-base">
+              {panel.submitTitle}
+            </p>
+            {panel.submitSubtitle && (
+              <p className="mt-0.5 text-xs font-medium text-white/85 sm:text-sm">
+                {panel.submitSubtitle}
+              </p>
+            )}
+          </div>
+        </a>
+      )}
+    </motion.div>
   );
 }
 
@@ -126,6 +204,7 @@ export default function Hero() {
   const visibleHighlights = getVisibleHeroHighlights(heroHighlights);
   const visibleSponsors = getVisibleHeroSponsors(heroSponsors);
   const visibleCtas = getVisibleHeroCtas(heroContent);
+  const proceedingsPanel = getHeroProceedingsPanel(heroContent);
 
   return (
     <section
@@ -157,7 +236,7 @@ export default function Hero() {
       )}
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-6 lg:pl-12 lg:pr-8 xl:pl-16 xl:pr-8 2xl:pl-20">
-        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,240px)] xl:grid-cols-[minmax(0,1fr)_280px] lg:gap-12 xl:gap-14">
+        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:gap-10 xl:gap-12">
           <motion.div
             variants={slideFromLeft}
             initial="hidden"
@@ -261,9 +340,11 @@ export default function Hero() {
           )}
           </motion.div>
 
-          <div className="mt-8 flex justify-center lg:mt-0 lg:justify-end lg:pt-14 xl:pt-20">
-            <HeroBookCover />
-          </div>
+          {proceedingsPanel && (
+            <div className="mt-8 flex justify-center lg:mt-0 lg:justify-end lg:pt-16 xl:pt-20">
+              <HeroProceedingsPanel panel={proceedingsPanel} />
+            </div>
+          )}
         </div>
       </div>
     </section>
