@@ -241,7 +241,7 @@ export default function Hero() {
             variants={slideFromLeft}
             initial="hidden"
             animate="visible"
-            className="max-w-3xl [text-shadow:0_2px_12px_rgba(0,0,0,0.45)]"
+            className="max-w-xl [text-shadow:0_2px_12px_rgba(0,0,0,0.45)]"
           >
           {heroContent.badge && <Badge>{heroContent.badge}</Badge>}
 
