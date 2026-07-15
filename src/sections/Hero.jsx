@@ -241,39 +241,39 @@ export default function Hero() {
             variants={slideFromLeft}
             initial="hidden"
             animate="visible"
-            className="max-w-xl [text-shadow:0_2px_12px_rgba(0,0,0,0.45)]"
+            className="max-w-xl text-justify [text-shadow:0_2px_12px_rgba(0,0,0,0.45)]"
           >
           {heroContent.badge && <Badge>{heroContent.badge}</Badge>}
 
           {heroContent.fullName && (
-            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.2em] text-blue-800 sm:text-xs">
+            <p className="mt-5 text-justify text-[11px] font-bold uppercase tracking-[0.2em] text-blue-800 sm:text-xs">
               {heroContent.fullName}
             </p>
           )}
 
           {heroContent.title && (
-            <h1 className="mt-3 bg-gradient-to-b from-sky-600 via-blue-500 to-blue-900 bg-clip-text text-[2.75rem] font-extrabold leading-[1.05] tracking-tight text-transparent [text-shadow:none] sm:text-5xl lg:text-6xl xl:text-7xl">
+            <h1 className="mt-3 bg-gradient-to-b from-sky-600 via-blue-500 to-blue-900 bg-clip-text text-justify text-[2.75rem] font-extrabold leading-[1.05] tracking-tight text-transparent [text-shadow:none] sm:text-5xl lg:text-6xl xl:text-7xl">
               {heroContent.title}
             </h1>
           )}
 
           {heroContent.subtitle && (
-            <p className="mt-3 text-xl font-bold leading-snug text-blue-800 sm:text-2xl">
+            <p className="mt-3 text-justify text-xl font-bold leading-snug text-blue-800 sm:text-2xl">
               {heroContent.subtitle}
             </p>
           )}
 
           {heroContent.tagline && (
-            <p className="mt-4 flex gap-3 text-base italic leading-relaxed text-blue-500 sm:text-lg">
+            <p className="mt-4 flex gap-3 text-justify text-base italic leading-relaxed text-blue-500 sm:text-lg">
               <span className="shrink-0 font-light not-italic text-blue-400/90" aria-hidden="true">
                 |
               </span>
-              <span>{heroContent.tagline}</span>
+              <span className="min-w-0 flex-1 text-justify">{heroContent.tagline}</span>
             </p>
           )}
 
           {heroContent.publication && (
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-blue-800 sm:text-base">
+            <p className="mt-4 max-w-2xl text-justify text-sm leading-relaxed text-blue-800 sm:text-base">
               {heroContent.publication}
             </p>
           )}
