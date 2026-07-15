@@ -21,7 +21,9 @@ export default function Footer() {
       <Container>
         <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
           <div className="sm:col-span-2 lg:col-span-1">
-            <Logo size="lg" />
+            <div className="inline-flex items-center justify-center rounded-2xl bg-white p-3 shadow-sm ring-1 ring-white/20">
+              <Logo size="lg" />
+            </div>
             <p className="mt-4 text-sm text-slate-400 leading-relaxed max-w-xs">{about}</p>
           </div>
 

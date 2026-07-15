@@ -4,8 +4,8 @@ export const speakers = [
     name: "Pr. El Habib Benlahmar",
     position: "Professor",
     company:
-      "Faculty of Sciences Ben M'Sik, Hassan II University of Casablanca, Morocco",
-    bio: "Professor in the Department of Mathematics and Computer Science at the Faculty of Sciences Ben M'Sik, Hassan II University of Casablanca.",
+      "Faculty of Sciences Ben M'Sick, Hassan II University of Casablanca, Morocco",
+    bio: "Professor in the Department of Mathematics and Computer Science at the Faculty of Sciences Ben M'Sick, Hassan II University of Casablanca.",
     image:
       "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80",
   },
@@ -14,8 +14,8 @@ export const speakers = [
     name: "Pr. Sanaa El Filali",
     position: "Professor",
     company:
-      "Faculty of Sciences Ben M'Sik, Hassan II University of Casablanca, Morocco",
-    bio: "Professor in the Department of Mathematics and Computer Science at the Faculty of Sciences Ben M'Sik, Hassan II University of Casablanca.",
+      "Faculty of Sciences Ben M'Sick, Hassan II University of Casablanca, Morocco",
+    bio: "Professor in the Department of Mathematics and Computer Science at the Faculty of Sciences Ben M'Sick, Hassan II University of Casablanca.",
     image:
       "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80",
   },

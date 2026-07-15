@@ -8,6 +8,7 @@ import Committees from "../sections/Committees";
 import SubmissionGuidelines from "../sections/SubmissionGuidelines";
 import RegisterPricing from "../sections/RegisterPricing";
 import Sponsors from "../sections/Sponsors";
+import LocationMap from "../sections/LocationMap";
 import CTA from "../sections/CTA";
 
 export default function Home() {
@@ -23,6 +24,7 @@ export default function Home() {
       <SubmissionGuidelines />
       <RegisterPricing />
       <Sponsors />
+      <LocationMap />
       <CTA />
     </>
   );

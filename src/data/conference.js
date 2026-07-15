@@ -6,10 +6,10 @@ export const conference = {
   tagline:
     "Innovation and Trends in Computer Science and Modeling: Bridging Theory, Practice, and the Power of AI",
   description:
-    "The 8th edition of the International Conference on Information Technology and Modeling (ICTIM'26), organized by the TIM Laboratory at the Faculty of Sciences Ben M'Sik. Join us to discover the future of AI and digital transformation, and be part of the conversation shaping the next frontier of technology.",
-  location: "Faculty of Sciences Ben M'Sik, Hassan II University",
+    "The 8th edition of the International Conference on Information Technology and Modeling (ICTIM'26), organized by the TIM Laboratory at the Faculty of Sciences Ben M'Sick. Join us to discover the future of AI and digital transformation, and be part of the conversation shaping the next frontier of technology.",
+  location: "Faculty of Sciences Ben M'Sick, Hassan II University",
   city: "Casablanca, Morocco",
-  venue: "Faculty of Sciences Ben M'Sik | Casablanca - Morocco",
+  venue: "Faculty of Sciences Ben M'Sick | Casablanca - Morocco",
   dates: "November 26 – 28, 2026",
   publication:
     "Proceedings published in Springer's CCIS series. Extended versions of selected papers submitted to Scopus-indexed journals.",
@@ -23,7 +23,7 @@ export const conference = {
     emails: ["tim24fsbm@gmail.com", "omar.zahour@univh2c.ma"],
     phone: "+212 660-082091",
     address:
-      "Faculty of Sciences Ben M'Sik, University Hassan II, Casablanca, Morocco",
+      "Faculty of Sciences Ben M'Sick, University Hassan II, Casablanca, Morocco",
   },
   organizer: "TIM Laboratory — LTIM",
 };
@@ -184,7 +184,7 @@ export const workshops = [
     facilitator: {
       name: "Pr. El Habib Benlahmar",
       credentials:
-        "Professor, Faculty of Sciences Ben M'Sik, Hassan II University of Casablanca",
+        "Professor, Faculty of Sciences Ben M'Sick, Hassan II University of Casablanca",
     },
     objectives: [
       "Learn text-to-video pipeline fundamentals",
@@ -207,7 +207,7 @@ export const workshops = [
     facilitator: {
       name: "Pr. Sanaa El Filali",
       credentials:
-        "Professor, Faculty of Sciences Ben M'Sik, Hassan II University of Casablanca",
+        "Professor, Faculty of Sciences Ben M'Sick, Hassan II University of Casablanca",
     },
     objectives: [
       "Design robust data models for analytics",
@@ -324,7 +324,7 @@ export const participationSteps = [
     title: "Date of the Conference",
     date: "November 26 – 28, 2026",
     description:
-      "Join us at the Faculty of Sciences Ben M'Sik in Casablanca for two days of keynotes, sessions, and networking.",
+      "Join us at the Faculty of Sciences Ben M'Sick in Casablanca for two days of keynotes, sessions, and networking.",
     icon: "calendar",
     image:
       "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80",
@@ -386,7 +386,7 @@ export const previousEditions = [
     category: "7th Edition",
     date: "November 26–27, 2024",
     location: "Casablanca, Morocco",
-    attendees: "Faculty of Sciences Ben M'Sik",
+    attendees: "Faculty of Sciences Ben M'Sick",
     price: "Latest Edition",
     image:
       "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80",

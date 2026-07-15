@@ -40,7 +40,7 @@ export const benefits = [
     id: 5,
     title: "TIM Laboratory",
     description:
-      "Organized by the TIM Laboratory at the Faculty of Sciences Ben M'Sik, Hassan II University of Casablanca.",
+      "Organized by the TIM Laboratory at the Faculty of Sciences Ben M'Sick, Hassan II University of Casablanca.",
     icon: HiOutlineBuildingLibrary,
   },
   {
