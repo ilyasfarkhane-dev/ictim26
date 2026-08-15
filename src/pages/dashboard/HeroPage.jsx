@@ -381,7 +381,7 @@ export default function HeroPage() {
                   label="Card subtitle"
                   value={panel.cardSubtitle ?? ""}
                   onChange={(e) => updateProceedings({ cardSubtitle: e.target.value })}
-                  placeholder="Published in Springer CCIS Series"
+                  placeholder="Previous edition proceedings"
                 />
               </div>
 
@@ -405,7 +405,7 @@ export default function HeroPage() {
                   label="Proceedings link"
                   value={panel.bookHref ?? ""}
                   onChange={(e) => updateProceedings({ bookHref: e.target.value })}
-                  placeholder="https://link.springer.com/book/..."
+                  placeholder="https://www.conference-tim.com/"
                 />
               </div>
 
@@ -593,7 +593,7 @@ export default function HeroPage() {
                     label="Alt text (accessibility)"
                     value={sponsor.name}
                     onChange={(e) => updateSponsor(i, "name", e.target.value)}
-                    placeholder="Springer"
+                    placeholder="Partner name"
                     disabled={!enabled}
                   />
                 </div>
@@ -675,14 +675,14 @@ export default function HeroPage() {
                       label="Value"
                       value={stat.value}
                       onChange={(e) => updateHighlight(i, "value", e.target.value)}
-                      placeholder="Springer"
+                      placeholder="Scopus"
                       disabled={!enabled}
                     />
                     <DashInput
                       label="Label"
                       value={stat.label}
                       onChange={(e) => updateHighlight(i, "label", e.target.value)}
-                      placeholder="CCIS Proceedings"
+                      placeholder="Indexed Journals"
                       disabled={!enabled}
                     />
                   </div>

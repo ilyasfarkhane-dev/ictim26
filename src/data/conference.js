@@ -12,11 +12,11 @@ export const conference = {
   venue: "Faculty of Sciences Ben M'Sick | Casablanca - Morocco",
   dates: "November 26 – 28, 2026",
   publication:
-    "Proceedings published in Springer's CCIS series. Extended versions of selected papers submitted to Scopus-indexed journals.",
+    "Extended versions of selected papers are submitted to Scopus-indexed journals.",
   templateNote:
     "English is the language of the conference and all submissions. Manuscripts should be prepared using the A4 IEEE template.",
   templateUrl:
-    "https://www.springer.com/gp/computer-science/lncs/conference-proceedings-guidelines",
+    "https://www.ieee.org/conferences/publishing/templates.html",
   registrationUrl: "https://www.conference-tim.com/",
   websiteUrl: "https://www.conference-tim.com/",
   contact: {
@@ -65,12 +65,12 @@ export const submissionGuidelines = {
       id: "format",
       pill: "A4 IEEE Template",
       pillHref:
-        "https://www.springer.com/gp/computer-science/lncs/conference-proceedings-guidelines",
+        "https://www.ieee.org/conferences/publishing/templates.html",
       icon: "format",
       title: "Paper Format",
       items: [
         "Available in Word & LaTeX",
-        "Springer CCIS proceedings format",
+        "A4 IEEE proceedings format",
         "Includes references",
       ],
     },
@@ -99,7 +99,7 @@ export const submissionGuidelines = {
     "Original work only required",
     "Double-blind review process",
     "Conflict-of-interest management",
-    "Springer publication standards",
+    "Publication ethics standards",
   ],
 };
 
@@ -226,9 +226,9 @@ export const callForPapers = {
   intro:
     "ICTIM'26 invites original and unpublished research contributions in Information Technology and Modeling. Submissions must present novel scientific results and be written in English.",
   publication: [
-    "Peer-reviewed proceedings in Springer's CCIS series",
+    "Peer-reviewed conference proceedings",
     "Extended papers submitted to Scopus-indexed journals",
-    "Springer LNCS format compliance required",
+    "A4 IEEE format compliance required",
   ],
   requirements: [
     "A4 IEEE template (Word/LaTeX guidelines)",
@@ -404,12 +404,10 @@ export const editionsDropdown = {
 };
 
 export const partners = [
-  { id: 1, name: "Springer", logo: "https://cdn.simpleicons.org/springer/94A3B8" },
-  { id: 2, name: "IEEE", logo: "https://cdn.simpleicons.org/ieee/94A3B8" },
-  { id: 3, name: "Hassan II University", logo: "https://cdn.simpleicons.org/googlecloud/94A3B8" },
-  { id: 4, name: "TIM Laboratory", logo: "https://cdn.simpleicons.org/researchgate/94A3B8" },
-  { id: 5, name: "Scopus", logo: "https://cdn.simpleicons.org/elsevier/94A3B8" },
-  { id: 6, name: "CCIS", logo: "https://cdn.simpleicons.org/springer/94A3B8" },
+  { id: 1, name: "IEEE", logo: "https://cdn.simpleicons.org/ieee/94A3B8" },
+  { id: 2, name: "Hassan II University", logo: "https://cdn.simpleicons.org/googlecloud/94A3B8" },
+  { id: 3, name: "TIM Laboratory", logo: "https://cdn.simpleicons.org/researchgate/94A3B8" },
+  { id: 4, name: "Scopus", logo: "https://cdn.simpleicons.org/elsevier/94A3B8" },
 ];
 
 export const footerLinks = {
@@ -429,7 +427,7 @@ export const footerLinks = {
   Resources: [
     {
       label: "IEEE Template",
-      href: "https://www.springer.com/gp/computer-science/lncs/conference-proceedings-guidelines",
+      href: "https://www.ieee.org/conferences/publishing/templates.html",
     },
     { label: "Submission Guidelines", href: "#submission-guidelines" },
     { label: "Official Website", href: "https://www.conference-tim.com/" },

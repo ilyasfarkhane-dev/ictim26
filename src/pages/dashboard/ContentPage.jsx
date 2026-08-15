@@ -389,7 +389,7 @@ function CallForPapersEditor({ form, setForm }) {
         hint="Shown in the Publication card on the Call for Papers section."
         items={form.publication ?? [""]}
         onChange={(items) => setForm({ ...form, publication: items })}
-        placeholder="Peer-reviewed proceedings in Springer's CCIS series"
+        placeholder="Peer-reviewed conference proceedings"
       />
       <LineListEditor
         label="Submission requirements"

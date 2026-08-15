@@ -43,7 +43,7 @@ export default function Testimonials() {
               rel="noopener noreferrer"
               className="text-primary font-medium hover:underline cursor-pointer"
             >
-              Springer LNCS proceedings guidelines
+              IEEE template guidelines
             </a>
             .
           </p>

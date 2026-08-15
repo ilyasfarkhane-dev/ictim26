@@ -643,7 +643,7 @@ export default function SponsorsPage() {
             label="Partner name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder="Springer"
+            placeholder="Partner name"
             required
           />
 

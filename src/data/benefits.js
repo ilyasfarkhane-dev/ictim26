@@ -10,9 +10,9 @@ import {
 export const benefits = [
   {
     id: 1,
-    title: "Springer CCIS Proceedings",
+    title: "Peer-Reviewed Proceedings",
     description:
-      "Accepted papers are published in Springer's Communications in Computer and Information Science (CCIS) series.",
+      "Accepted papers are published in the peer-reviewed conference proceedings.",
     icon: HiOutlineBookOpen,
   },
   {

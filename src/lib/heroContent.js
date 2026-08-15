@@ -7,13 +7,13 @@ export function buildDefaultProceedingsPanel(conference) {
   return {
     enabled: true,
     cardTitle: "ICTIM 2024 Proceedings",
-    cardSubtitle: "Published in Springer CCIS Series",
+    cardSubtitle: "Previous edition proceedings",
     bookTitle: "Technologies of Information and Modeling",
-    bookHref: "https://link.springer.com/book/10.1007/978-3-032-15147-6",
+    bookHref: "https://www.conference-tim.com/",
     bookCoverSrc: DEFAULT_BOOK_COVER,
     features: [
       "Proceedings of the 7th International Conference on Information Technology and Modeling (ICTIM 2024)",
-      "Published in Springer CCIS Series",
+      "Peer-reviewed conference proceedings",
       "Indexed in Scopus",
     ],
     viewButtonLabel: "View Proceedings",

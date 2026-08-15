@@ -19,7 +19,7 @@ export default function Sponsors() {
       <Container>
         <SectionHeader
           title="Partners & Publications"
-          subtitle="ICTIM proceedings are published through Springer's CCIS series with extended papers in Scopus-indexed journals."
+          subtitle="ICTIM partners and publication venues supporting the conference community."
         />
 
         <motion.div
