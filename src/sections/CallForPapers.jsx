@@ -63,19 +63,7 @@ export default function CallForPapers() {
             <p className="mt-5 text-base sm:text-lg text-text-secondary leading-relaxed max-w-lg">
               {callForPapers.intro}
             </p>
-            <div className="mt-8">
-              {cta.href ? (
-                <Button
-                  variant="primary"
-                  size="lg"
-                  href={cta.href}
-                  className="inline-flex"
-                >
-                  {cta.label}
-                  <HiOutlineArrowTopRightOnSquare className="w-5 h-5" />
-                </Button>
-              ) : null}
-            </div>
+            
           </motion.div>
 
           <motion.div

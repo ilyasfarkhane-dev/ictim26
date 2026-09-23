@@ -49,25 +49,7 @@ function PillarCard({ pillar, index }) {
       custom={index * 0.08}
       className="flex flex-col"
     >
-      <a
-        href={href}
-        {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        aria-label={
-          isExternal
-            ? `${pillar.pill} (opens in a new tab)`
-            : `${pillar.pill} (go to section)`
-        }
-        className="group self-start inline-flex items-center gap-2 rounded-full border border-primary/15 bg-light-blue pl-3 pr-1.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white hover:border-primary transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
-      >
-        <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
-        <span>{pillar.pill}</span>
-        <span
-          className="ml-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-white/20 group-hover:text-white transition-colors duration-200"
-          aria-hidden="true"
-        >
-          <NavIcon className="w-3.5 h-3.5" />
-        </span>
-      </a>
+      
 
       <div className="mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-light-blue text-primary">
         <Icon className="w-7 h-7" />
