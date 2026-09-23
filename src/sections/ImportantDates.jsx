@@ -119,7 +119,7 @@ export default function ImportantDates() {
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12 lg:mb-16">
           <SectionHeader
             title="Important Dates"
-            subtitle="Key milestones for authors and attendees — plan your submission and travel for ICTIM'26."
+            subtitle="Key milestones for authors and attendees — plan your submission and travel for ICTIM."
             align="left"
             className="mb-0"
           />
